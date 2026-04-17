@@ -22,6 +22,7 @@ import {
   passwordStrengthRules,
   type RegisterErrors,
 } from "@/validators/register.validator";
+import { handleApiError } from "@/utils/error.util";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -62,9 +63,7 @@ export default function RegisterPage() {
       toast.success("Đăng ký thành công! Hãy đăng nhập để tiếp tục. 🎉");
       router.push("/login");
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Đăng ký thất bại. Vui lòng thử lại.";
-      toast.error(Array.isArray(message) ? message[0] : message);
+      handleApiError(err, "Đăng ký thất bại. Vui lòng thử lại sau.");
     } finally {
       setLoading(false);
     }

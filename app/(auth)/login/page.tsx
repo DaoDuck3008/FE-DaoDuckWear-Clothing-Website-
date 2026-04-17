@@ -20,6 +20,7 @@ import {
   validateLoginForm,
   type LoginErrors,
 } from "@/validators/login.validator";
+import { handleApiError } from "@/utils/error.util";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,9 +65,7 @@ export default function LoginPage() {
       toast.success(`Chào mừng trở lại, ${user.username}! 🎉`);
       router.push("/");
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Đăng nhập thất bại. Vui lòng thử lại.";
-      toast.error(message);
+      handleApiError(err, "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     } finally {
       setLoading(false);
     }
