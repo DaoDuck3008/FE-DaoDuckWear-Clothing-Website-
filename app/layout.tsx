@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Manrope } from "next/font/google";
+import { Geist_Mono, Inter, Noto_Serif } from "next/font/google";
 import "@/styles/global.css";
 import { ToastContainer } from "react-toastify";
 import AuthHydrator from "@/components/providers/authHydrator";
@@ -9,10 +9,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const manrope = Manrope({
-  subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-manrope",
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const notoSerif = Noto_Serif({
+  variable: "--font-noto-serif",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${manrope.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${notoSerif.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
         <AuthHydrator>
           <div className="min-h-screen">{children}</div>
           <ToastContainer />

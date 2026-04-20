@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, ShoppingBag, User, ChevronDown } from "lucide-react";
+import { 
+  LogOut, 
+  ShoppingBag, 
+  User, 
+  ChevronDown, 
+  Search, 
+  Heart, 
+} from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { logout } from "@/apis/auth.api";
 import { toast } from "react-toastify";
@@ -14,7 +21,6 @@ export default function AppHeader() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -44,133 +50,127 @@ export default function AppHeader() {
   const avatarLetter = user?.username?.charAt(0).toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-bold tracking-tight text-zinc-900 dark:text-white"
-        >
-          <ShoppingBag className="h-6 w-6 text-indigo-600" />
-          <span className="hidden sm:inline">
-            Dao<span className="text-indigo-600">Duck</span>Wear
-          </span>
-        </Link>
+    <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-stone-100">
+      <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 lg:py-6">
+        <div className="flex justify-between items-center mb-4 lg:mb-6">
+          {/* Social Icons */}
+          <div className="hidden lg:flex items-center gap-6 flex-1">
+            <a className="hover:opacity-60 transition-opacity" href="#">
+              <img src="/assets/FacebookIcon.png" alt="Facebook" className="w-4 h-4 object-contain grayscale" />
+            </a>
+            <a className="hover:opacity-60 transition-opacity" href="#">
+              <img src="/assets/InstagramIcon.png" alt="Instagram" className="w-4 h-4 object-contain grayscale" />
+            </a>
+            <a className="hover:opacity-60 transition-opacity" href="#">
+              <img src="/assets/YoutubeIcon.png" alt="Youtube" className="w-4 h-4 object-contain grayscale" />
+            </a>
+          </div>
+          
+          {/* Logo */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Link
+              className="font-serif text-2xl lg:text-3xl font-bold tracking-tighter text-black"
+              href="/"
+            >
+              ATELIER
+            </Link>
+          </div>
+          
+          {/* Right Actions */}
+          <div className="flex items-center gap-4 lg:gap-6 flex-1 justify-end">
+            <div className="hidden md:flex items-center border-b border-black/10 pb-1">
+              <Search className="w-4 h-4 text-black mr-2" />
+              <input
+                className="bg-transparent border-none p-0 text-xs focus:ring-0 placeholder:text-stone-400 w-24 lg:w-32 font-sans"
+                placeholder="Tìm kiếm sản phẩm..."
+                type="text"
+              />
+            </div>
 
-        {/* Nav links — có thể bổ sung sau */}
-        <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400 md:flex">
-          <Link
-            href="/"
-            className="transition-colors hover:text-zinc-900 dark:hover:text-white"
-          >
-            Trang chủ
-          </Link>
-          <Link
-            href="/shop"
-            className="transition-colors hover:text-zinc-900 dark:hover:text-white"
-          >
-            Cửa hàng
-          </Link>
-        </nav>
-
-        {/* Right actions */}
-        <div className="flex items-center gap-3">
-          {/* Chờ hydrate để tránh flash */}
-          {!hydrated ? (
-            <div className="h-9 w-32 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
-          ) : user ? (
-            /* ── Avatar dropdown ── */
-            <div className="relative" ref={dropdownRef}>
-              <button
-                id="user-menu-button"
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full py-1.5 pl-2 pr-3 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                aria-expanded={dropdownOpen}
-                aria-haspopup="true"
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.username}
-                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500/30"
-                  />
-                ) : (
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                    {avatarLetter}
-                  </span>
-                )}
-                <span className="hidden max-w-[120px] truncate sm:inline">
-                  {user.username}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${
-                    dropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Dropdown menu */}
-              {dropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-52 origin-top-right rounded-xl border border-zinc-200 bg-white shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900"
-                  role="menu"
+            {/* Auth section */}
+            {!hydrated ? (
+              <div className="h-6 w-6 animate-pulse rounded-full bg-stone-100" />
+            ) : user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="hover:opacity-60 transition-opacity flex items-center gap-1"
                 >
-                  {/* User info */}
-                  <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
-                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
-                      {user.username}
-                    </p>
-                    {user.email && (
-                      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                        {user.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="p-1">
-                    <Link
-                      href="/profile"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                      role="menuitem"
-                    >
-                      <User className="h-4 w-4" />
-                      Hồ sơ của tôi
-                    </Link>
-
-                    <button
-                      id="logout-button"
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.username} className="w-6 h-6 rounded-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-black" />
+                  )}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-100 shadow-xl z-50 p-2">
+                    <div className="px-3 py-2 border-b border-stone-50 mb-1">
+                      <p className="text-xs font-bold truncate">{user.username}</p>
+                    </div>
+                    <Link href="/profile" className="block px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors">Hồ sơ</Link>
+                    <button 
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
-                      role="menuitem"
+                      className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut className="h-4 w-4" />
                       Đăng xuất
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* ── Login / Register buttons ── */
-            <>
-              <Link
-                id="login-link"
-                href="/login"
-                className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                Đăng nhập
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="hover:opacity-60 transition-opacity">
+                <User className="w-6 h-6 text-black" />
               </Link>
-              <Link
-                id="register-link"
-                href="/register"
-                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 active:bg-indigo-800"
-              >
-                Đăng ký
-              </Link>
-            </>
-          )}
+            )}
+
+            <button className="hover:opacity-60 transition-opacity hidden sm:block">
+              <Heart className="w-6 h-6 text-black" />
+            </button>
+            
+            <Link href="/cart" className="hover:opacity-60 transition-opacity relative">
+              <ShoppingBag className="w-6 h-6 text-black" />
+              <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
+                0
+              </span>
+            </Link>
+          </div>
         </div>
+        
+        {/* Navigation Links Centered */}
+        <nav className="flex justify-center gap-6 lg:gap-10 items-center mt-4 lg:mt-8 overflow-x-auto no-scrollbar pb-2">
+          <Link
+            className="text-black border-b border-black pb-0.5 font-medium text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
+            href="/shop"
+          >
+            Cửa hàng
+          </Link>
+          <Link
+            className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
+            href="/shop?gender=men"
+          >
+            Nam
+          </Link>
+          <Link
+            className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
+            href="/shop?gender=women"
+          >
+            Nữ
+          </Link>
+          <Link
+            className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
+            href="/accessories"
+          >
+            Phụ kiện
+          </Link>
+          <Link
+            className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
+            href="/about"
+          >
+            Về chúng tôi
+          </Link>
+        </nav>
       </div>
     </header>
   );
