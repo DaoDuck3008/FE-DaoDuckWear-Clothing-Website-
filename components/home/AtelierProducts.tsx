@@ -66,27 +66,30 @@ interface AtelierProductSectionProps {
   products: Product[];
 }
 
-export const AtelierProductSection = ({ title, products }: AtelierProductSectionProps) => {
+export const AtelierProductSection = ({
+  title,
+  products,
+}: AtelierProductSectionProps) => {
   return (
     <section className="max-w-[1920px] mx-auto px-6 lg:px-12 py-16 lg:py-24 mb-12">
-      <h2 className="font-serif text-2xl font-bold tracking-tighter uppercase mb-8">
+      <h2 className="text-2xl font-bold tracking-tighter uppercase mb-8">
         {title}
       </h2>
       <div className="relative group">
         <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 w-10 h-10 bg-white border border-stone-200 rounded-full flex items-center justify-center shadow-sm z-10 hover:bg-stone-50 transition-colors opacity-0 group-hover:opacity-100 hidden lg:flex">
           <ChevronLeft className="w-4 h-4" />
         </button>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <AtelierProductCard key={product.id} product={product} />
           ))}
         </div>
-        
+
         <button className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 w-10 h-10 bg-white border border-stone-200 rounded-full flex items-center justify-center shadow-sm z-10 hover:bg-stone-50 transition-colors opacity-0 group-hover:opacity-100 hidden lg:flex">
           <ChevronRight className="w-4 h-4" />
         </button>
-        
+
         {/* Dots - visual only as per code.html */}
         <div className="flex justify-center gap-1.5 mt-8">
           <button className="w-1.5 h-1.5 rounded-full bg-stone-300"></button>
@@ -95,7 +98,7 @@ export const AtelierProductSection = ({ title, products }: AtelierProductSection
           <button className="w-1.5 h-1.5 rounded-full bg-black"></button>
         </div>
       </div>
-      
+
       <div className="mt-8 border-b border-stone-200 pb-12">
         <a
           className="inline-block border border-stone-300 px-6 py-2 text-[11px] font-medium uppercase tracking-widest hover:border-black transition-colors"

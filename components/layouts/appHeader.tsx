@@ -92,10 +92,13 @@ export default function AppHeader() {
               <div className="h-6 w-6 animate-pulse rounded-full bg-stone-100" />
             ) : user ? (
               <div className="relative" ref={dropdownRef}>
-                <button 
+                 <button 
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="hover:opacity-60 transition-opacity flex items-center gap-1"
+                  className="hover:opacity-60 transition-opacity flex items-center gap-2"
                 >
+                  <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] text-black">
+                    {user.username}
+                  </span>
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.username} className="w-6 h-6 rounded-full object-cover" />
                   ) : (
@@ -106,8 +109,12 @@ export default function AppHeader() {
                 
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-100 shadow-xl z-50 p-2">
-                    <div className="px-3 py-2 border-b border-stone-50 mb-1">
-                      <p className="text-xs font-bold truncate">{user.username}</p>
+                    <div className="px-3 py-3 border-b border-stone-100 mb-1">
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">Thành viên</p>
+                      <p className="text-xs font-bold truncate text-black uppercase tracking-tight">{user.username}</p>
+                      {user.email && (
+                        <p className="text-[10px] text-stone-500 truncate mt-1 normal-case tracking-normal font-medium">{user.email}</p>
+                      )}
                     </div>
                     <Link href="/profile" className="block px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors">Hồ sơ</Link>
                     <button 

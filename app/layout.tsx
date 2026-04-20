@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter, Noto_Serif } from "next/font/google";
+import { Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import "@/styles/global.css";
 import { ToastContainer } from "react-toastify";
 import AuthHydrator from "@/components/providers/authHydrator";
@@ -14,9 +14,9 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const notoSerif = Noto_Serif({
-  variable: "--font-noto-serif",
-  subsets: ["latin"],
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "vietnamese"],
 });
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${notoSerif.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${playfair.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
         <AuthHydrator>
           <div className="min-h-screen">{children}</div>
           <ToastContainer />

@@ -2,12 +2,12 @@ const AtelierNewsletter = () => {
   return (
     <section className="py-24 lg:py-32 px-6 lg:px-12 text-center bg-white border-t border-stone-100">
       <div className="max-w-2xl mx-auto">
-        <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tighter mb-6">
+        <h2 className=" text-3xl md:text-4xl font-bold tracking-tighter mb-6">
           Trở thành một phần của Atelier
         </h2>
         <p className="font-sans text-stone-500 mb-10 text-sm md:text-base leading-relaxed">
-          Đăng ký nhận bản tin để không bỏ lỡ những bộ sưu tập mới nhất, ưu
-          đãi đặc quyền và những câu chuyện thời trang truyền cảm hứng.
+          Đăng ký nhận bản tin để không bỏ lỡ những bộ sưu tập mới nhất, ưu đãi
+          đặc quyền và những câu chuyện thời trang truyền cảm hứng.
         </p>
         <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
           <input

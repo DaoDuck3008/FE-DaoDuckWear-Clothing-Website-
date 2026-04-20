@@ -3,15 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  ShoppingBag,
-  Loader2,
-  ArrowRight,
-} from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/stores/auth.store";
 import { login } from "@/apis/auth.api";
@@ -21,6 +13,7 @@ import {
   type LoginErrors,
 } from "@/validators/login.validator";
 import { handleApiError } from "@/utils/error.util";
+import GuestGuard from "@/components/guards/guestGuard";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,7 +40,6 @@ export default function LoginPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    // clear field error on change
     if (errors[name as keyof LoginForm]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -65,202 +57,170 @@ export default function LoginPage() {
       toast.success(`Chào mừng trở lại, ${user.username}! 🎉`);
       router.push("/");
     } catch (err: any) {
-      handleApiError(err, "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      handleApiError(
+        err,
+        "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Left panel (decorative) ── */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-12 lg:flex">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-white" />
-          <div className="absolute -bottom-32 -right-20 h-[500px] w-[500px] rounded-full bg-white" />
-          <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
-        </div>
-
-        <div className="relative z-10 flex items-center gap-3">
-          <ShoppingBag className="h-8 w-8 text-white" />
-          <span className="text-2xl font-bold text-white">DaoDuckWear</span>
-        </div>
-
-        <div className="relative z-10 space-y-4">
-          <h2 className="text-4xl font-bold leading-snug text-white">
-            Phong cách của bạn,
-            <br />
-            <span className="text-indigo-200">câu chuyện của bạn.</span>
-          </h2>
-          <p className="text-lg text-indigo-100">
-            Khám phá bộ sưu tập thời trang độc đáo dành riêng cho bạn.
-          </p>
-        </div>
-
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="flex -space-x-3">
-            {["D", "A", "O"].map((l) => (
-              <div
-                key={l}
-                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-indigo-500 bg-white text-sm font-bold text-indigo-600"
-              >
-                {l}
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-indigo-200">
-            Hơn <strong className="text-white">10,000+</strong> khách hàng tin tưởng
+    <div className="flex min-h-screen bg-white font-sans antialiased">
+      {/* Left Panel: Fashion Imagery */}
+      <div className="hidden lg:block w-1/2 relative overflow-hidden bg-stone-100">
+        <img
+          src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1920&auto=format&fit=crop"
+          alt="Editorial Fashion"
+          className="absolute inset-0 w-full h-full object-cover grayscale"
+        />
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute bottom-12 left-12 z-10 text-white">
+          <Link
+            href="/"
+            className="font-serif text-3xl font-bold tracking-tighter mb-8 block"
+          >
+            ATELIER
+          </Link>
+          <p className="text-[10px] uppercase tracking-[0.4em] font-medium max-w-xs leading-loose">
+            "The Digital Atelier - Where craftsmanship meets contemporary
+            design."
           </p>
         </div>
       </div>
 
-      {/* ── Right panel (form) ── */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 px-6 py-12 dark:bg-zinc-950">
-        {/* Mobile logo */}
-        <Link
-          href="/"
-          className="mb-8 flex items-center gap-2 lg:hidden"
-        >
-          <ShoppingBag className="h-7 w-7 text-indigo-600" />
-          <span className="text-xl font-bold text-zinc-900 dark:text-white">
-            DaoDuckWear
-          </span>
-        </Link>
-
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-              Đăng nhập
+      {/* Right Panel: Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 overflow-y-auto">
+        <div className="w-full max-w-sm space-y-12">
+          <header className="space-y-4">
+            <Link
+              href="/"
+              className="lg:hidden font-serif text-2xl font-bold tracking-tighter mb-8 block"
+            >
+              ATELIER
+            </Link>
+            <h1 className="font-serif text-4xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
+              Đăng nhập tài khoản
             </h1>
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Chưa có tài khoản?{" "}
-              <Link
-                href="/register"
-                className="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-              >
-                Đăng ký ngay
-              </Link>
+            <p className="text-stone-400 text-xs uppercase tracking-widest leading-loose">
+              Truy cập vào tài khoản của bạn để khám phá những bộ sưu tập mới
+              nhất.
             </p>
-          </div>
+          </header>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <form onSubmit={handleSubmit} noValidate className="space-y-10">
+            <div className="space-y-8">
+              {/* Email Field */}
+              <div className="space-y-2 group">
+                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 group-focus-within:text-black transition-colors">
+                  Email Address
+                </label>
                 <input
-                  id="email"
                   name="email"
                   type="email"
-                  autoComplete="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="ten@example.com"
-                  className={`h-11 w-full rounded-xl border bg-white pl-10 pr-4 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm outline-none transition focus:ring-2 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-600 ${
-                    errors.email
-                      ? "border-red-400 focus:ring-red-400/30 dark:border-red-500"
-                      : "border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-zinc-700 dark:focus:border-indigo-400"
-                  }`}
+                  className={`w-full bg-transparent border-b ${errors.email ? "border-red-500" : "border-stone-200"} focus:border-black py-3 text-sm transition-colors outline-none font-medium`}
+                  placeholder="example@atelier.com"
                 />
+                {errors.email && (
+                  <p className="text-[10px] text-red-500 uppercase tracking-wider">
+                    {errors.email}
+                  </p>
+                )}
               </div>
-              {errors.email && (
-                <p className="text-xs text-red-500">{errors.email}</p>
-              )}
+
+              {/* Password Field */}
+              <div className="space-y-2 group">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 group-focus-within:text-black transition-colors">
+                    Password
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    title="Forgot Password"
+                    className="text-[9px] uppercase tracking-widest text-stone-400 hover:text-black"
+                  >
+                    Quên mật khẩu?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={handleChange}
+                    className={`w-full bg-transparent border-b ${errors.password ? "border-red-500" : "border-stone-200"} focus:border-black py-3 text-sm transition-colors outline-none font-medium pr-10`}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-[10px] text-red-500 uppercase tracking-wider">
+                    {errors.password}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                >
-                  Mật khẩu
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-                >
-                  Quên mật khẩu?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`h-11 w-full rounded-xl border bg-white pl-10 pr-11 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm outline-none transition focus:ring-2 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-600 ${
-                    errors.password
-                      ? "border-red-400 focus:ring-red-400/30 dark:border-red-500"
-                      : "border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:border-zinc-700 dark:focus:border-indigo-400"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-                  tabIndex={-1}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-xs text-red-500">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Remember me */}
-            <label className="flex cursor-pointer items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <input
                 id="rememberMe"
                 name="rememberMe"
                 type="checkbox"
                 checked={form.rememberMe}
                 onChange={handleChange}
-                className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-indigo-600"
+                className="w-3 h-3 accent-black cursor-pointer"
               />
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <label
+                htmlFor="rememberMe"
+                className="text-[10px] uppercase tracking-widest text-stone-500 cursor-pointer"
+              >
                 Ghi nhớ đăng nhập
-              </span>
-            </label>
+              </label>
+            </div>
 
-            {/* Submit */}
             <button
-              id="login-submit-button"
               type="submit"
               disabled={loading}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full bg-black text-white py-4 px-6 text-[11px] font-bold uppercase tracking-[0.25em] flex items-center justify-center gap-3 hover:bg-stone-800 transition-all disabled:bg-stone-300 active:scale-[0.99]"
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang đăng nhập...
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  Đang xử lý...
                 </>
               ) : (
                 <>
                   Đăng nhập
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </>
               )}
             </button>
           </form>
+
+          <footer className="pt-10 border-t border-stone-100 flex flex-col gap-4">
+            <p className="text-[10px] text-stone-400 uppercase tracking-widest text-center">
+              Chưa có tài khoản?
+            </p>
+            <Link
+              href="/register"
+              className="w-full border border-stone-200 text-black py-4 px-6 text-[11px] font-bold uppercase tracking-[0.25em] text-center hover:border-black transition-all"
+            >
+              Tạo tài khoản
+            </Link>
+          </footer>
         </div>
       </div>
     </div>
