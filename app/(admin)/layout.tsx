@@ -1,5 +1,6 @@
-import AppHeader from "@/components/layouts/appHeader";
-import AppFooter from "@/components/layouts/appFooter";
+import AdminHeader from "@/components/layouts/adminHeader";
+import AuthGuard from "@/components/guards/authGuard";
+import RoleGuard from "@/components/guards/roleGuard";
 
 export default function AdminLayout({
   children,
@@ -7,10 +8,14 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col font-sans antialiased">
-      <AppHeader />
-      <main className="flex-1 bg-stone-50">{children}</main>
-      <AppFooter />
-    </div>
+    <AuthGuard>
+      <RoleGuard allowedRoles={["ADMIN"]}>
+        <div className="flex min-h-screen flex-col font-sans antialiased">
+          <AdminHeader />
+          <main className="flex-1 bg-stone-50">{children}</main>
+        </div>
+      </RoleGuard>
+    </AuthGuard>
   );
 }
+
