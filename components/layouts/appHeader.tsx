@@ -50,7 +50,7 @@ export default function AppHeader() {
   const avatarLetter = user?.username?.charAt(0).toUpperCase() ?? "U";
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-stone-100">
+    <header className="sticky top-0 w-full z-50 bg-white border-b border-stone-100">
       <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 lg:py-6">
         <div className="flex justify-between items-center mb-4 lg:mb-6">
           {/* Social Icons */}
