@@ -21,10 +21,16 @@ import InternalServerErrorPage from "@/app/error/500/page";
 import ProductGallery from "@/components/products/ProductGallery";
 import SizeGuide from "@/components/products/SizeGuide";
 import PurchasePolicy from "@/components/products/PurchasePolicy";
+import { useCartStore } from "@/stores/cart.store";
+import { useAuthStore } from "@/stores/auth.store";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
+  const addItem = useCartStore((state) => state.addItem);
+  const user = useAuthStore((state) => state.user);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,6 +104,12 @@ export default function ProductDetailPage() {
   const increaseQty = () => setQuantity(quantity + 1);
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      router.push("/login");
+      return;
+    }
+
     if (!selectedColor) {
       toast.warning("Vui lòng chọn màu sắc");
       return;
@@ -106,9 +118,35 @@ export default function ProductDetailPage() {
       toast.warning("Vui lòng chọn kích cỡ");
       return;
     }
-    toast.success(
-      `Đã thêm vào giỏ hàng: ${product?.name} (${selectedColor} - ${selectedSize})`,
+
+    if (!product) return;
+
+    // Tìm variant thực sự từ database dựa trên màu và size đã chọn
+    const selectedVariant = product.variants.find(
+      (v) => v.color === selectedColor && v.size === selectedSize,
     );
+
+    if (!selectedVariant) {
+      toast.error("Phiên bản sản phẩm này hiện không khả dụng.");
+      return;
+    }
+
+    // Tạo item để thêm vào giỏ sử dụng ID thật từ DB
+    addItem({
+      variantId: selectedVariant.id,
+      productId: product.id,
+      name: product.name,
+      image:
+        product.images.find((img) => img.color === selectedColor)?.url ||
+        product.images[0].url,
+      price: Number(selectedVariant.price) || displayPrice,
+      color: selectedColor,
+      size: selectedSize,
+      quantity: quantity,
+      slug: product.slug,
+    });
+
+    toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
   };
 
   if (loading) {
@@ -211,7 +249,7 @@ export default function ProductDetailPage() {
                       key={c}
                       onClick={() => setSelectedColor(c)}
                       className={cn(
-                        "w-10 h-14 border p-0.5 transition-all overflow-hidden relative",
+                        "w-14 h-18 border p-0.5 transition-all overflow-hidden relative",
                         selectedColor === c
                           ? "border-black scale-105 z-10 shadow-md"
                           : "border-stone-100 hover:border-stone-300",
@@ -304,17 +342,17 @@ export default function ProductDetailPage() {
               <div className="flex gap-2">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-[3] bg-black text-white h-12 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-lg active:scale-[0.98]"
+                  className="flex-[3] cursor-pointer bg-black text-white h-12 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-lg active:scale-[0.98]"
                 >
                   Mua ngay
                 </button>
-                <button className="flex-1 border border-stone-200 flex items-center justify-center hover:border-black transition-all group">
-                  <Heart className="w-4 h-4 text-stone-400 group-hover:text-red-500 transition-colors" />
+                <button className="flex-1 cursor-pointer border border-stone-200 flex items-center justify-center hover:border-black hover:border-red-500 transition-all group">
+                  <Heart className="w-5 h-5 text-stone-400 group-hover:text-red-500 transition-colors" />
                 </button>
               </div>
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-white border border-black text-black h-12 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-50 transition-all active:scale-[0.98]"
+                className="w-full cursor-pointer  bg-white border border-black text-black h-12 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-900 hover:text-white  transition-all active:scale-[0.98]"
               >
                 Thêm vào giỏ hàng
               </button>
@@ -361,7 +399,7 @@ export default function ProductDetailPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "px-8 py-4 text-[9px] font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap relative",
+                  "px-8 py-4 text-[12px] font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap relative",
                   activeTab === tab.id
                     ? "text-black"
                     : "text-stone-400 hover:text-stone-600",

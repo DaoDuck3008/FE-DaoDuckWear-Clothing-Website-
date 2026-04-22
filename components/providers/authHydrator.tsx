@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { refresh } from "@/apis/auth.api";
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+
+import { useCartStore } from "@/stores/cart.store";
 
 export default function AuthHydrator({
   children,
@@ -14,6 +15,7 @@ export default function AuthHydrator({
   const setAuth = useAuthStore((s) => s.setAuth);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const setHydrated = useAuthStore((s) => s.setHydrated);
+  const fetchCart = useCartStore((s) => s.fetchCart);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,6 +25,9 @@ export default function AuthHydrator({
         const res = await refresh();
         const { accessToken, user } = res.data;
         setAuth(accessToken, user);
+
+        // Sync cart after login
+        fetchCart();
       } catch {
         clearAuth();
 

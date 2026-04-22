@@ -68,6 +68,13 @@ export default function RegisterPage() {
           <header className="space-y-4">
             <Link
               href="/"
+              className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 hover:text-black transition-colors mb-4"
+            >
+              <ArrowRight className="w-3 h-3 rotate-180 group-hover:-translate-x-1 transition-transform" />
+              Quay lại trang chủ
+            </Link>
+            <Link
+              href="/"
               className="lg:hidden font-serif text-2xl font-bold tracking-tighter mb-8 block"
             >
               ATELIER

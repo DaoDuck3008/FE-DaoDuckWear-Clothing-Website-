@@ -14,6 +14,8 @@ import {
   ChevronRight,
   ChevronDown,
   Menu,
+  Home,
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -104,7 +106,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation section */}
-      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto no-scrollbar">
         {menuItems.map((item) => {
           const hasSubItems = item.subItems && item.subItems.length > 0;
           const isOpen = openMenus.includes(item.title);
@@ -189,7 +191,33 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Sidebar Footer */}
-      <div className="p-4 border-t border-stone-50">
+      <div className="p-4 border-t border-stone-50 space-y-4">
+        {/* Back to Storefront Link */}
+        <Link
+          href="/"
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 text-stone-500 hover:text-black transition-all group",
+            isCollapsed && "justify-center",
+          )}
+        >
+          <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          {!isCollapsed && (
+            <div className="flex flex-col">
+              <span className="text-[12px] font-black uppercase tracking-[0.2em]">
+                Về trang chủ
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-stone-300">
+                Giao diện khách hàng
+              </span>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="fixed left-20 hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 ml-1">
+              Về trang chủ
+            </div>
+          )}
+        </Link>
+
         {!isCollapsed ? (
           <div className="bg-stone-50 p-4 rounded-lg">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">

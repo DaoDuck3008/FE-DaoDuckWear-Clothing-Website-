@@ -18,6 +18,8 @@ interface ProductGalleryProps {
   productName: string;
 }
 
+const PLACEHOLDER_IMAGE = "https://placehold.co/600x800?text=No+Image";
+
 export default function ProductGallery({
   images,
   selectedColor,
@@ -59,7 +61,7 @@ export default function ProductGallery({
     setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const activeImage = images[activeIndex]?.url;
+  const activeImage = images[activeIndex]?.url || PLACEHOLDER_IMAGE;
 
   return (
     <>
@@ -81,7 +83,7 @@ export default function ProductGallery({
               )}
             >
               <img
-                src={img.url}
+                src={img.url || PLACEHOLDER_IMAGE}
                 alt={`${productName} thumbnail ${idx}`}
                 className="w-full h-full object-contain"
               />
@@ -94,13 +96,11 @@ export default function ProductGallery({
           className="flex-1 bg-white aspect-[3/4] lg:h-[600px] relative overflow-hidden group border border-stone-100 cursor-zoom-in"
           onClick={() => setIsLightboxOpen(true)}
         >
-          {activeImage && (
-            <img
-              src={activeImage}
-              alt={productName}
-              className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
-            />
-          )}
+          <img
+            src={activeImage}
+            alt={productName}
+            className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
+          />
 
           {/* Navigation Buttons */}
           <button
@@ -163,7 +163,7 @@ export default function ProductGallery({
 
             <div className="flex-1 w-full flex items-center justify-center p-4 min-h-0">
               <img
-                src={images[activeIndex].url}
+                src={images[activeIndex]?.url || PLACEHOLDER_IMAGE}
                 alt="Fullscreen"
                 className="max-w-full max-h-full object-contain shadow-2xl transition-all duration-500 animate-in zoom-in-95"
               />
@@ -195,7 +195,7 @@ export default function ProductGallery({
                   )}
                 >
                   <img
-                    src={img.url}
+                    src={img.url || PLACEHOLDER_IMAGE}
                     alt="thumb"
                     className="w-full h-full object-contain"
                   />

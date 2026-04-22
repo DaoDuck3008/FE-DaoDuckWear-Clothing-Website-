@@ -13,7 +13,6 @@ import {
   type LoginErrors,
 } from "@/validators/login.validator";
 import { handleApiError } from "@/utils/error.util";
-import GuestGuard from "@/components/guards/guestGuard";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,6 +53,7 @@ export default function LoginPage() {
       const res = await login(form);
       const { accessToken, user } = res.data;
       setAuth(accessToken, user);
+      
       toast.success(`Chào mừng trở lại, ${user.username}! 🎉`);
       router.push("/");
     } catch (err: any) {
@@ -94,6 +94,13 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 overflow-y-auto">
         <div className="w-full max-w-sm space-y-12">
           <header className="space-y-4">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 hover:text-black transition-colors mb-4"
+            >
+              <ArrowRight className="w-3 h-3 rotate-180 group-hover:-translate-x-1 transition-transform" />
+              Quay lại trang chủ
+            </Link>
             <Link
               href="/"
               className="lg:hidden font-serif text-2xl font-bold tracking-tighter mb-8 block"
