@@ -82,6 +82,7 @@ api.interceptors.response.use(
       });
     }
 
+    // Đối với các lỗi khác, chúng ta để component tự catch bằng handleError helper
     return Promise.reject(error);
   },
 );

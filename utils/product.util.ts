@@ -17,7 +17,11 @@ export const toSlug = (s: string) =>
  * Generate SKU based on format: [BrandPrefix][TypePrefix][Day][Warehouse] - [Size] - [ColorCode]
  * Example: UNLE15HCM - S - H (Uniqlo - Len - 15th - HCM)
  */
-export const generateSKU = (productName: string, color: string, size: string) => {
+export const generateSKU = (
+  productName: string,
+  color: string,
+  size: string,
+) => {
   if (!productName) return "";
 
   const cleanString = (str: string) =>
@@ -29,13 +33,19 @@ export const generateSKU = (productName: string, color: string, size: string) =>
       .toUpperCase();
 
   const words = cleanString(productName).split(" ").filter(Boolean);
-  
+
   // Heuristic for Brand and Type
   // Brand: Last word (e.g., Uniqlo -> UN)
   // Type: Second word if available, else first word (e.g., Len -> LE)
-  const brandPrefix = words.length > 1 ? words[words.length - 1].substring(0, 2) : "DD";
-  const typePrefix = words.length > 1 ? (words[1].length >= 2 ? words[1].substring(0, 2) : words[1].substring(0, 1) + "X") : words[0].substring(0, 2);
-  
+  const brandPrefix =
+    words.length > 1 ? words[words.length - 1].substring(0, 2) : "DD";
+  const typePrefix =
+    words.length > 1
+      ? words[1].length >= 2
+        ? words[1].substring(0, 2)
+        : words[1].substring(0, 1) + "X"
+      : words[0].substring(0, 2);
+
   const day = new Date().getDate().toString().padStart(2, "0");
   const warehouse = "HCM";
 
@@ -43,6 +53,6 @@ export const generateSKU = (productName: string, color: string, size: string) =>
   const sizePart = size.toUpperCase() || "N";
 
   const baseSKU = `${brandPrefix}${typePrefix}${day}${warehouse}`;
-  
+
   return `${baseSKU} - ${sizePart} - ${colorPart}`;
 };

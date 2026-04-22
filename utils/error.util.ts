@@ -1,50 +1,72 @@
 import { AxiosError } from "axios";
+import { ApiError } from "@/types/api";
 import { toast } from "react-toastify";
 
 /**
- * Định dạng phản hồi lỗi từ Backend (HttpExceptionFilter)
+ * Tiện ích xử lý lỗi từ API một cách thống nhất cho toàn bộ Frontend.
+ * Nó sẽ bóc tách dữ liệu từ cấu trúc chuẩn RESTful mà Backend trả về (success, statusCode, errorCode, message, errors).
+ *
+ * @param error - Đối tượng lỗi từ Axios hoặc lỗi không xác định
+ * @param customMessage - Thông báo thay thế nếu bạn không mún dùng message từ Backend
  */
-interface ApiErrorResponse {
-  success: boolean;
-  statusCode: number;
-  message: string | string[];
-  path: string;
-  method: string;
-  timestamp: string;
-}
+export const handleApiError = (error: unknown, customMessage?: string) => {
+  const axiosError = error as AxiosError<ApiError>;
 
-/**
- * Xử lý lỗi tập trung từ API trả về.
- * @param error Lỗi nhận được từ axios/try-catch
- * @param fallbackMessage Tin nhắn mặc định nếu không parse được lỗi từ server
- * @returns Tin nhắn lỗi cuối cùng (dùng để lưu log hoặc debug)
- */
-export const handleApiError = (
-  error: any,
-  fallbackMessage: string = "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
-) => {
-  const axiosError = error as AxiosError<ApiErrorResponse>;
-  const responseData = axiosError.response?.data;
+  // 1. Trích xuất dữ liệu lỗi từ response của backend
+  const apiError = axiosError.response?.data;
 
-  let finalMessage = fallbackMessage;
+  // 2. Xác định message hiển thị:
+  // Thử lấy message từ backend -> Nếu không có thì lấy customMessage -> Cuối cùng mới lấy message mặc định của Axios
+  const message =
+    apiError?.message ||
+    customMessage ||
+    axiosError.message ||
+    "Đã có lỗi xảy ra, vui lòng thử lại sau!";
 
-  // 1. Trích xuất message từ response của Backend
-  if (responseData?.message) {
-    if (Array.isArray(responseData.message)) {
-      // Nếu là mảng, lấy lỗi đầu tiên
-      finalMessage = responseData.message[0];
-    } else {
-      finalMessage = responseData.message;
+  // 3. Xử lý hiển thị thông báo lỗi
+  if (apiError?.errors && Array.isArray(apiError.errors)) {
+    // Trường hợp lỗi Validation (có danh sách các field bị sai)
+    // Hiển thị message tổng quát trước
+    toast.error(message);
+
+    // Hiển thị chi tiết từng lỗi nhỏ (nếu cần)
+    apiError.errors.forEach((err) => {
+      toast.error(`• ${err}`);
+    });
+  } else {
+    // Trường hợp lỗi thông thường hoặc lỗi logic nghiệp vụ
+    toast.error(message);
+  }
+
+  // 4. Logging nâng cao cho môi trường Development
+  if (
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_NODE_ENV === "development"
+  ) {
+    console.group("--- [FRONTEND API ERROR] ---");
+    console.error(
+      `Endpoint: [${axiosError.config?.method?.toUpperCase()}] ${axiosError.config?.url}`,
+    );
+    console.error(
+      `Status: ${axiosError.response?.status} (${apiError?.errorCode || "N/A"})`,
+    );
+    console.error(`Message: ${message}`);
+    if (apiError?.errors) console.error("Validation Errors:", apiError.errors);
+    if (apiError?.stack) {
+      console.error("Server Stack Trace:");
+      console.error(apiError.stack);
     }
-  }
-  // 2. Nếu không có message từ backend, dùng message mặc định của Axios
-  else if (axiosError.message) {
-    finalMessage = axiosError.message;
+    console.groupEnd();
   }
 
-  // Hiển thị thông báo Toast
-  toast.error(finalMessage);
-
-  // Trả về message để component có thể sử dụng tiếp nếu cần (vd: clear form)
-  return finalMessage;
+  // Trả về object lỗi đã được chuẩn hóa để component có thể xử lý thêm nếu muốn
+  return {
+    message,
+    errorCode: apiError?.errorCode,
+    errors: apiError?.errors,
+    statusCode: axiosError.response?.status || 500,
+  };
 };
+
+/** Alias cho handleApiError để dùng linh hoạt */
+export const handleError = handleApiError;
