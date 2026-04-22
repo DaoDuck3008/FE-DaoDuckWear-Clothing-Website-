@@ -3,6 +3,7 @@ import { Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import "@/styles/global.css";
 import { ToastContainer } from "react-toastify";
 import AuthHydrator from "@/components/providers/authHydrator";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -35,6 +36,7 @@ export default function RootLayout({
         <AuthHydrator>
           <div className="min-h-screen">{children}</div>
           <ToastContainer />
+          <ScrollToTop />
         </AuthHydrator>
       </body>
     </html>

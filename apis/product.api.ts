@@ -9,4 +9,8 @@ export const productApi = {
     });
     return response.data;
   },
+  getProductBySlug: async (slug: string) => {
+    const response = await api.get(`/products/${slug}`);
+    return response.data;
+  },
 };
