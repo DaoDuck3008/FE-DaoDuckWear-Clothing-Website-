@@ -6,6 +6,7 @@ import { refresh } from "@/apis/auth.api";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useCartStore } from "@/stores/cart.store";
+import { useFavoriteStore } from "@/stores/favorite.store";
 
 export default function AuthHydrator({
   children,
@@ -16,6 +17,7 @@ export default function AuthHydrator({
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const setHydrated = useAuthStore((s) => s.setHydrated);
   const fetchCart = useCartStore((s) => s.fetchCart);
+  const fetchFavorites = useFavoriteStore((s) => s.fetchFavorites);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,16 +28,11 @@ export default function AuthHydrator({
         const { accessToken, user } = res.data;
         setAuth(accessToken, user);
 
-        // Sync cart after login
+        // Sync cart & favorites after login
         fetchCart();
+        fetchFavorites();
       } catch {
         clearAuth();
-
-        // // nếu đang ở protected route thì đẩy về login
-        // if (!pathname.startsWith("/login")) {
-        //   toast.info("You are being redirected to login page.");
-        //   router.replace("/login");
-        // }
       } finally {
         // đánh dấu đã hydrate xong
         setHydrated();

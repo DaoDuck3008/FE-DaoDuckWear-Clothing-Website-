@@ -16,15 +16,21 @@ import { useAuthStore } from "@/stores/auth.store";
 import { logout } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import CartSidebar from "../cart/CartSidebar";
+import FavoriteSidebar from "../favorites/FavoriteSidebar";
 import { useCartStore } from "@/stores/cart.store";
+import { useFavoriteStore } from "@/stores/favorite.store";
 
 export default function AppHeader() {
   const router = useRouter();
   const { user, hydrated, clearAuth } = useAuthStore();
   const totalItems = useCartStore((state) => state.totalItems);
+  const totalFavorites = useFavoriteStore((state) => state.totalItems);
   const clearCart = useCartStore((state) => state.clearCart);
+  const clearFavorites = useFavoriteStore((state) => state.clearFavorites);
+  
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -50,13 +56,12 @@ export default function AppHeader() {
     } finally {
       clearAuth();
       clearCart(); // Xóa giỏ hàng cục bộ khi logout
+      clearFavorites(); // Xóa favorites cục bộ khi logout
       setDropdownOpen(false);
       toast.success("Đã đăng xuất thành công!");
       router.push("/");
     }
   };
-
-  const avatarLetter = user?.username?.charAt(0).toUpperCase() ?? "U";
 
   return (
     <>
@@ -164,12 +169,15 @@ export default function AppHeader() {
                           Trang quản trị
                         </Link>
                       )}
-                      <Link
-                        href="/favorites"
-                        className="block px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors"
+                      <button
+                        onClick={() => {
+                          setIsFavoriteOpen(true);
+                          setDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors"
                       >
                         Danh sách yêu thích
-                      </Link>
+                      </button>
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors"
@@ -188,8 +196,16 @@ export default function AppHeader() {
                 </Link>
               )}
 
-              <button className="hover:opacity-60 transition-opacity hidden sm:block">
+              <button 
+                onClick={() => setIsFavoriteOpen(true)}
+                className="hover:opacity-60 transition-opacity hidden sm:block relative group"
+              >
                 <Heart className="w-6 h-6 text-black" />
+                {mounted && totalFavorites() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold group-hover:scale-110 transition-transform">
+                    {totalFavorites()}
+                  </span>
+                )}
               </button>
 
               <button
@@ -249,6 +265,7 @@ export default function AppHeader() {
       </header>
 
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <FavoriteSidebar isOpen={isFavoriteOpen} onClose={() => setIsFavoriteOpen(false)} />
     </>
   );
 }

@@ -23,6 +23,7 @@ import SizeGuide from "@/components/products/SizeGuide";
 import PurchasePolicy from "@/components/products/PurchasePolicy";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { useFavoriteStore } from "@/stores/favorite.store";
 import { useRouter } from "next/navigation";
 import { handleApiError } from "@/utils/error.util";
 import { ShopSelect, Shop } from "@/components/ui/ShopSelect";
@@ -33,6 +34,9 @@ export default function ProductDetailPage() {
   const slug = params.slug as string;
   const addItem = useCartStore((state) => state.addItem);
   const user = useAuthStore((state) => state.user);
+  
+  // Favorites logic
+  const { addItem: addFavorite, removeItem: removeFavorite, isFavorite } = useFavoriteStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,6 +144,23 @@ export default function ProductDetailPage() {
   const decreaseQty = () => quantity > 1 && setQuantity(quantity - 1);
   const increaseQty = () => setQuantity(quantity + 1);
 
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.info("Vui lòng đăng nhập để lưu sản phẩm yêu thích");
+      router.push("/login");
+      return;
+    }
+    if (!product) return;
+
+    if (isFavorite(product.id)) {
+      await removeFavorite(product.id);
+      toast.info("Đã xóa khỏi danh sách yêu thích");
+    } else {
+      await addFavorite(product.id);
+      toast.success("Đã thêm vào danh sách yêu thích");
+    }
+  };
+
   const handleAddToCart = () => {
     if (!user) {
       toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
@@ -230,6 +251,8 @@ export default function ProductDetailPage() {
               images={product.images}
               selectedColor={selectedColor}
               productName={product.name}
+              isFavorite={isFavorite(product.id)}
+              onToggleFavorite={handleToggleFavorite}
             />
           </div>
 
@@ -402,8 +425,18 @@ export default function ProductDetailPage() {
                 >
                   Mua ngay
                 </button>
-                <button className="flex-1 cursor-pointer border border-stone-200 flex items-center justify-center hover:border-black hover:border-red-500 transition-all group">
-                  <Heart className="w-5 h-5 text-stone-400 group-hover:text-red-500 transition-colors" />
+                <button
+                  onClick={handleToggleFavorite}
+                  className="flex-1 cursor-pointer border border-stone-200 flex items-center justify-center hover:border-black hover:border-red-500 transition-all group"
+                >
+                  <Heart
+                    className={cn(
+                      "w-5 h-5 transition-colors",
+                      isFavorite(product.id)
+                        ? "text-red-500 fill-red-500"
+                        : "text-stone-400 group-hover:text-red-500",
+                    )}
+                  />
                 </button>
               </div>
               <button

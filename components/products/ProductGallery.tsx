@@ -16,6 +16,8 @@ interface ProductGalleryProps {
   images: ProductImage[];
   selectedColor: string | null;
   productName: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 const PLACEHOLDER_IMAGE = "https://placehold.co/600x800?text=No+Image";
@@ -24,6 +26,8 @@ export default function ProductGallery({
   images,
   selectedColor,
   productName,
+  isFavorite = false,
+  onToggleFavorite,
 }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -123,10 +127,29 @@ export default function ProductGallery({
           </div>
 
           <div className="absolute top-4 right-4 flex flex-col gap-2">
-            <button className="bg-white/90 backdrop-blur p-2.5 hover:bg-black hover:text-white transition-all shadow-sm rounded-full">
-              <Heart className="w-4 h-4" />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite?.();
+              }}
+              className={cn(
+                "backdrop-blur p-2.5 transition-all shadow-sm rounded-full",
+                isFavorite
+                  ? "bg-red-500 text-white"
+                  : "bg-white/90 hover:bg-black hover:text-white text-black",
+              )}
+            >
+              <Heart
+                className={cn("w-4 h-4", isFavorite ? "fill-white" : "")}
+              />
             </button>
-            <button className="bg-white/90 backdrop-blur p-2.5 hover:bg-black hover:text-white transition-all shadow-sm rounded-full">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Share logic could go here
+              }}
+              className="bg-white/90 backdrop-blur p-2.5 hover:bg-black hover:text-white transition-all shadow-sm rounded-full text-black"
+            >
               <Share2 className="w-4 h-4" />
             </button>
           </div>
