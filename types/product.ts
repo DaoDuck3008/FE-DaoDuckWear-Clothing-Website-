@@ -7,9 +7,13 @@ export type Variant = {
   price: number | string;
   sku: string;
   stock: number | string;
-  inventory?: {
+  inventories?: {
+    shopId: string;
     quantity: number;
-  };
+    shop?: {
+      name: string;
+    };
+  }[];
 };
 
 export type ProductImage = {

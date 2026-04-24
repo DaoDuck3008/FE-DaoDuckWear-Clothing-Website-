@@ -53,7 +53,7 @@ export default function LoginPage() {
       const res = await login(form);
       const { accessToken, user } = res.data;
       setAuth(accessToken, user);
-      
+
       toast.success(`Chào mừng trở lại, ${user.username}! 🎉`);
       router.push("/");
     } catch (err: any) {
@@ -217,7 +217,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <footer className="pt-10 border-t border-stone-100 flex flex-col gap-4">
+          <footer className="border-t border-stone-100 flex flex-col gap-4">
             <p className="text-[10px] text-stone-400 uppercase tracking-widest text-center">
               Chưa có tài khoản?
             </p>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
 import { CategorySelect } from "@/components/ui/CategorySelect";
+import { ShopSelect } from "@/components/ui/ShopSelect";
 import { MainImageDropzone } from "@/components/ui/ImageDropzone";
 
 import { STATUS_OPTIONS, SIZES } from "@/constants/product";
@@ -24,6 +25,8 @@ export default function CreateProductPage() {
     setBasePrice,
     categoryId,
     setCategoryId,
+    shopId,
+    setShopId,
     status,
     setStatus,
     variants,
@@ -32,6 +35,7 @@ export default function CreateProductPage() {
     isSubmitting,
     loadingMessage,
     categories,
+    shops,
     errors,
     uniqueColors,
     handleNameChange,
@@ -165,6 +169,18 @@ export default function CreateProductPage() {
                     value={categoryId}
                     onChange={(id) => setCategoryId(id)}
                     categories={categories}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm uppercase tracking-[0.2em] font-bold text-stone-400">
+                    Cửa hàng / Chi nhánh
+                  </label>
+                  <ShopSelect
+                    value={shopId}
+                    onChange={(id) => setShopId(id)}
+                    shops={shops}
+                    error={errors.shopId}
                   />
                 </div>
 

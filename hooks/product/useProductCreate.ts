@@ -8,8 +8,10 @@ import {
   ProductFormErrors,
 } from "@/validators/product.validator";
 import { productApi } from "@/apis/product.api";
+import { shopApi } from "@/apis/shop.api";
 import { categoryApi } from "@/apis/category.api";
 import { CategoryNode } from "@/components/ui/CategorySelect";
+import { Shop } from "@/components/ui/ShopSelect";
 import { ImageItem } from "@/components/ui/ImageDropzone";
 import { handleApiError } from "@/utils/error.util";
 
@@ -26,6 +28,7 @@ export const useProductCreate = () => {
   const [description, setDescription] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState("active");
   const [variants, setVariants] = useState<Variant[]>([]);
   const [mainImages, setMainImages] = useState<ImageItem[]>([]);
@@ -35,19 +38,24 @@ export const useProductCreate = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Đang xử lý...");
   const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [errors, setErrors] = useState<ProductFormErrors>({});
 
   // --- Effects ---
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       try {
-        const data = await categoryApi.getCategories();
-        setCategories(data);
+        const [categoriesData, shopsData] = await Promise.all([
+          categoryApi.getCategories(),
+          shopApi.getShops(),
+        ]);
+        setCategories(categoriesData);
+        setShops(shopsData);
       } catch (error) {
-        handleApiError(error, "Lỗi khi lấy danh mục sản phẩm");
+        handleApiError(error, "Lỗi khi lấy dữ liệu ban đầu");
       }
     };
-    fetchCategories();
+    fetchInitialData();
   }, []);
 
   // --- Computed ---
@@ -191,6 +199,7 @@ export const useProductCreate = () => {
     const formErrors = validateProductForm({
       name,
       categoryId,
+      shopId,
       basePrice,
       variants,
       mainImages,
@@ -214,6 +223,7 @@ export const useProductCreate = () => {
       formData.append("description", description);
       formData.append("basePrice", basePrice.toString());
       formData.append("categoryId", categoryId);
+      formData.append("shopId", shopId);
       formData.append("status", status);
       formData.append("variants", JSON.stringify(variants));
 
@@ -251,6 +261,8 @@ export const useProductCreate = () => {
     setBasePrice,
     categoryId,
     setCategoryId,
+    shopId,
+    setShopId,
     status,
     setStatus,
     variants,
@@ -260,6 +272,7 @@ export const useProductCreate = () => {
     isSubmitting,
     loadingMessage,
     categories,
+    shops,
     errors,
     uniqueColors,
     // Flattened Handlers

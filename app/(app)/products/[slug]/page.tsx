@@ -24,6 +24,8 @@ import PurchasePolicy from "@/components/products/PurchasePolicy";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
+import { handleApiError } from "@/utils/error.util";
+import { ShopSelect, Shop } from "@/components/ui/ShopSelect";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -38,30 +40,35 @@ export default function ProductDetailPage() {
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedShopId, setSelectedShopId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("mota");
 
   // 1. Fetch Product Data
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await productApi.getProductBySlug(slug);
-        setProduct(data);
+        const productData = await productApi.getProductBySlug(slug);
+        
+        setProduct(productData);
 
-        if (data.variants && data.variants.length > 0) {
-          const firstColor = data.variants[0].color;
+        if (productData.variants && productData.variants.length > 0) {
+          const firstColor = productData.variants[0].color;
           setSelectedColor(firstColor);
         }
       } catch (err: any) {
-        console.error("Fetch product error:", err);
+        handleApiError(
+          err,
+          "Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.",
+        );
         setError("Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (slug) fetchProduct();
+    if (slug) fetchData();
   }, [slug]);
 
   // 2. Logic xử lý Biến thể
@@ -87,6 +94,36 @@ export default function ProductDetailPage() {
       (v) => v.color === selectedColor && v.size === selectedSize,
     );
   }, [product, selectedColor, selectedSize]);
+
+  const shops = useMemo(() => {
+    if (!product) return [];
+    const shopMap = new Map<string, Shop>();
+    
+    product.variants.forEach(variant => {
+      variant.inventories?.forEach(inv => {
+        if (inv.shop && !shopMap.has(inv.shopId)) {
+          shopMap.set(inv.shopId, {
+            id: inv.shopId,
+            name: inv.shop.name,
+            cityName: (inv.shop as any).cityName
+          });
+        }
+      });
+    });
+    
+    return Array.from(shopMap.values());
+  }, [product]);
+
+  const currentStock = useMemo(() => {
+    if (!selectedVariant) return 0;
+    if (!selectedShopId) {
+      // Nếu chưa chọn shop, trả về tổng tồn kho
+      return (selectedVariant.inventories || []).reduce((sum, inv) => sum + inv.quantity, 0);
+    }
+    // Trả về tồn kho của shop đã chọn
+    const shopInv = (selectedVariant.inventories || []).find(inv => inv.shopId === selectedShopId);
+    return shopInv ? shopInv.quantity : 0;
+  }, [selectedVariant, selectedShopId]);
 
   // Reset size khi đổi màu
   useEffect(() => {
@@ -274,7 +311,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Selection: Size */}
-            <div className="mb-4">
+            <div className="mb-6">
               <div className="flex justify-between items-end mb-2">
                 <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">
                   Kích cỡ:{" "}
@@ -304,6 +341,18 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Selection: Shop */}
+            <div className="mb-6">
+              <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 block mb-2">
+                Kiểm tra tồn kho tại chi nhánh:
+              </label>
+              <ShopSelect
+                value={selectedShopId}
+                onChange={(id) => setSelectedShopId(id)}
+                shops={shops}
+              />
+            </div>
+
             {/* Quantity & Actions Row */}
             <div className="flex items-center gap-4 mb-4">
               <div className="flex flex-col gap-1.5">
@@ -330,9 +379,16 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex-1 pt-5">
                 {selectedVariant && (
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 italic">
-                    * Còn {selectedVariant.inventory?.quantity || 0} sản phẩm
-                  </p>
+                  <div className="flex flex-col">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 italic">
+                      * {selectedShopId ? "Tồn kho chi nhánh:" : "Tổng tồn kho hệ thống:"} {currentStock} sản phẩm
+                    </p>
+                    {currentStock === 0 && selectedShopId && (
+                      <p className="text-[8px] text-red-500 font-bold uppercase tracking-tight mt-0.5">
+                        Hết hàng tại chi nhánh này
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
