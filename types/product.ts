@@ -4,6 +4,7 @@ export type Variant = {
   id: string;
   size: string;
   color: string;
+  colorHexId?: string;
   price: number | string;
   sku: string;
   stock: number | string;

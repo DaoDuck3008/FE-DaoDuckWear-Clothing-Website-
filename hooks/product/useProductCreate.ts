@@ -10,14 +10,21 @@ import {
 import { productApi } from "@/apis/product.api";
 import { shopApi } from "@/apis/shop.api";
 import { categoryApi } from "@/apis/category.api";
+import { colorApi } from "@/apis/color.api";
 import { CategoryNode } from "@/components/ui/CategorySelect";
 import { Shop } from "@/components/ui/ShopSelect";
 import { ImageItem } from "@/components/ui/ImageDropzone";
 import { handleApiError } from "@/utils/error.util";
 
+export interface Color {
+  id: string;
+  name: string;
+  slug: string;
+  hexCode: string;
+}
+
 /**
  * Custom hook quản lý logic form sản phẩm.
- * Sử dụng import trực tiếp: import { useProductCreate } from "@/hooks/product/useProductCreate";
  */
 export const useProductCreate = () => {
   const router = useRouter();
@@ -39,18 +46,21 @@ export const useProductCreate = () => {
   const [loadingMessage, setLoadingMessage] = useState("Đang xử lý...");
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
   const [errors, setErrors] = useState<ProductFormErrors>({});
 
   // --- Effects ---
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [categoriesData, shopsData] = await Promise.all([
+        const [categoriesData, shopsData, colorsData] = await Promise.all([
           categoryApi.getCategories(),
           shopApi.getShops(),
+          colorApi.getAll(),
         ]);
         setCategories(categoriesData);
         setShops(shopsData);
+        setColors(colorsData.data);
       } catch (error) {
         handleApiError(error, "Lỗi khi lấy dữ liệu ban đầu");
       }
@@ -83,13 +93,14 @@ export const useProductCreate = () => {
     ]);
   };
 
-  const addSizeToColor = (color: string) => {
+  const addSizeToColor = (color: string, colorHexId?: string) => {
     setVariants((prev) => [
       ...prev,
       {
         id: uid(),
         size: "",
         color: color,
+        colorHexId: colorHexId,
         price: "",
         sku: "",
         stock: "0",
@@ -127,9 +138,14 @@ export const useProductCreate = () => {
     });
   };
 
-  const updateColorGroup = (oldColor: string, newColor: string) => {
+  const updateColorGroup = (oldColor: string, newColor: string, newColorHexId?: string) => {
     setVariants((prev) =>
-      prev.map((v) => (v.color === oldColor ? { ...v, color: newColor } : v)),
+      prev.map((v) => {
+        if (v.color === oldColor) {
+          return { ...v, color: newColor, colorHexId: newColorHexId || v.colorHexId };
+        }
+        return v;
+      }),
     );
   };
 
@@ -250,7 +266,6 @@ export const useProductCreate = () => {
   };
 
   return {
-    // Flattened States
     name,
     setName,
     slug,
@@ -273,9 +288,9 @@ export const useProductCreate = () => {
     loadingMessage,
     categories,
     shops,
+    colors,
     errors,
     uniqueColors,
-    // Flattened Handlers
     handleNameChange,
     addVariant,
     addSizeToColor,

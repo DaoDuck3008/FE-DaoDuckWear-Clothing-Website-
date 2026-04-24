@@ -5,6 +5,7 @@ import { Plus, Trash2, ArrowLeft, AlertCircle } from "lucide-react";
 import { CategorySelect } from "@/components/ui/CategorySelect";
 import { ShopSelect } from "@/components/ui/ShopSelect";
 import { MainImageDropzone } from "@/components/ui/ImageDropzone";
+import { ColorDropdown } from "@/components/ui/ColorDropdown";
 
 import { STATUS_OPTIONS, SIZES } from "@/constants/product";
 import { LoadingLayer } from "@/components/ui/LoadingLayer";
@@ -36,6 +37,7 @@ export default function CreateProductPage() {
     loadingMessage,
     categories,
     shops,
+    colors,
     errors,
     uniqueColors,
     handleNameChange,
@@ -55,7 +57,7 @@ export default function CreateProductPage() {
   } = useProductCreate();
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-full bg-stone-50 pb-24">
       <LoadingLayer isLoading={isSubmitting} message={loadingMessage} />
 
       {/* Header Bar */}
@@ -99,7 +101,7 @@ export default function CreateProductPage() {
         <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-8">
           <div className="grid grid-cols-12 gap-6 items-start">
             {/* LEFT ASIDE: Basic Info */}
-            <aside className="col-span-12 lg:col-span-4 space-y-5 lg:sticky lg:top-[56px] max-h-[calc(100vh-56px)] lg:overflow-y-auto pr-0 lg:pr-1">
+            <aside className="col-span-12 lg:col-span-4 space-y-5 lg:sticky lg:top-20 h-fit pr-0 lg:pr-1">
               <div className="bg-white border border-stone-100 p-5 space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-stone-400 pb-2.5 border-b border-stone-50">
                   Thông tin cơ bản
@@ -289,6 +291,8 @@ export default function CreateProductPage() {
                       const colorVariants = variants.filter(
                         (v) => v.color.trim() === color,
                       );
+                      const currentColorHexId = colorVariants[0]?.colorHexId;
+
                       return (
                         <div
                           key={colorVariants[0]?.id || `group-${cIdx}`}
@@ -296,17 +300,37 @@ export default function CreateProductPage() {
                         >
                           {/* Color Group Header */}
                           <div className="flex items-center justify-between bg-stone-50 px-4 py-3 border-b border-stone-100">
-                            <div className="flex flex-col gap-1 w-48">
-                              <label className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">
-                                Màu sắc
-                              </label>
-                              <input
-                                value={color}
-                                onChange={(e) =>
-                                  updateColorGroup(color, e.target.value)
-                                }
-                                className="bg-transparent border-b border-stone-200 focus:border-black outline-none text-sm font-bold uppercase tracking-wider py-0.5 transition-colors"
-                              />
+                            <div className="flex gap-4">
+                              <div className="flex flex-col gap-1 w-48">
+                                <label className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">
+                                  Tên màu hiển thị
+                                </label>
+                                <input
+                                  value={color}
+                                  onChange={(e) =>
+                                    updateColorGroup(color, e.target.value)
+                                  }
+                                  className="bg-transparent border-b border-stone-200 focus:border-black outline-none text-sm font-bold uppercase tracking-wider py-0.5 transition-colors"
+                                  placeholder="VD: Đen nhám"
+                                />
+                              </div>
+
+                              <div className="flex flex-col gap-1 w-48">
+                                <label className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">
+                                  Mã màu chuẩn (Filter)
+                                </label>
+                                <ColorDropdown
+                                  options={colors}
+                                  value={currentColorHexId}
+                                  onChange={(newColorObj) => {
+                                    updateColorGroup(
+                                      color,
+                                      newColorObj.name,
+                                      newColorObj.id,
+                                    );
+                                  }}
+                                />
+                              </div>
                             </div>
                             <button
                               type="button"
@@ -413,7 +437,9 @@ export default function CreateProductPage() {
 
                             <button
                               type="button"
-                              onClick={() => addSizeToColor(color)}
+                              onClick={() =>
+                                addSizeToColor(color, currentColorHexId)
+                              }
                               className="mt-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-stone-400 hover:text-black transition-colors"
                             >
                               <Plus className="w-3 h-3" />
