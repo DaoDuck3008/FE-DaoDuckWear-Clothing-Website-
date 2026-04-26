@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter, Playfair_Display } from "next/font/google";
+import { Geist_Mono, Inter, Playfair_Display, Cormorant_Garamond, Outfit } from "next/font/google";
 import "@/styles/global.css";
 import { ToastContainer } from "react-toastify";
 import AuthHydrator from "@/components/providers/authHydrator";
@@ -17,7 +17,19 @@ const inter = Inter({
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
-  subsets: ["latin", "vietnamese"],
+  subsets: ["latin"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${playfair.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${playfair.variable} ${cormorant.variable} ${outfit.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
         <AuthHydrator>
           <div className="min-h-screen">{children}</div>
           <ToastContainer />

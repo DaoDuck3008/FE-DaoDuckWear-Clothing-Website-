@@ -44,19 +44,19 @@ export default function AppFooter() {
           <nav className="flex flex-wrap md:flex-col md:items-end gap-x-6 gap-y-4">
             <Link
               className="text-black border-b border-black pb-0.5 font-medium text-[11px] uppercase tracking-[0.25em] transition-all"
-              href="/shop"
+              href="/products"
             >
               Cửa hàng
             </Link>
             <Link
               className="text-stone-500 font-medium hover:text-black text-[11px] uppercase tracking-[0.25em] transition-all"
-              href="/shop?gender=men"
+              href="/products?gender=men"
             >
               Nam
             </Link>
             <Link
               className="text-stone-500 font-medium hover:text-black text-[11px] uppercase tracking-[0.25em] transition-all"
-              href="/shop?gender=women"
+              href="/products?gender=women"
             >
               Nữ
             </Link>

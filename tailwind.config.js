@@ -8,6 +8,8 @@ export default {
     extend: {
       fontFamily: {
         serif: ["var(--font-playfair)", "serif"],
+        cormorant: ["var(--font-cormorant)", "serif"],
+        outfit: ["var(--font-outfit)", "sans-serif"],
         sans: ["var(--font-inter)", "sans-serif"],
       },
       colors: {

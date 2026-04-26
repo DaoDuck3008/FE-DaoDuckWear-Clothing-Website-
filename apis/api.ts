@@ -4,6 +4,18 @@ import { useAuthStore } from "@/stores/auth.store";
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
+  paramsSerializer: (params) => {
+    const searchParams = new URLSearchParams();
+    for (const key in params) {
+      const value = params[key];
+      if (Array.isArray(value)) {
+        value.forEach((v) => searchParams.append(key, v));
+      } else if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    }
+    return searchParams.toString();
+  },
 });
 
 // gắn access_token vào header của mọi request mọi request

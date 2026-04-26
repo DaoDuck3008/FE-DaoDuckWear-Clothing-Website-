@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
-  LogOut,
   ShoppingBag,
   User,
   ChevronDown,
@@ -19,23 +18,42 @@ import CartSidebar from "../cart/CartSidebar";
 import FavoriteSidebar from "../favorites/FavoriteSidebar";
 import { useCartStore } from "@/stores/cart.store";
 import { useFavoriteStore } from "@/stores/favorite.store";
+import { categoryApi } from "@/apis/category.api";
+import { cn } from "@/utils/cn";
+import { handleApiError } from "@/utils/error.util";
 
 export default function AppHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, hydrated, clearAuth } = useAuthStore();
   const totalItems = useCartStore((state) => state.totalItems);
   const totalFavorites = useFavoriteStore((state) => state.totalItems);
   const clearCart = useCartStore((state) => state.clearCart);
   const clearFavorites = useFavoriteStore((state) => state.clearFavorites);
-  
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // 1. Only fetch categories ONCE on mount
   useEffect(() => {
-    setMounted(true); // Đánh dấu đã mount thành công trên client
+    setMounted(true);
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        setCategories(data);
+      } catch (error) {
+        handleApiError(error, "Lấy danh mục thất bại vui lòng thử lại");
+      }
+    };
+    fetchCategories();
+
     function handleClickOutside(e: MouseEvent) {
       if (
         dropdownRef.current &&
@@ -48,25 +66,77 @@ export default function AppHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 2. Handle scroll logic separately to avoid re-fetching
+  useEffect(() => {
+    const controlHeader = () => {
+      if (typeof window !== 'undefined') {
+        if (window.scrollY > lastScrollY && window.scrollY > 150) {
+          setIsVisible(false); // Scrolling down
+        } else {
+          setIsVisible(true); // Scrolling up
+        }
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener('scroll', controlHeader);
+    return () => window.removeEventListener('scroll', controlHeader);
+  }, [lastScrollY]);
+
   const handleLogout = async () => {
     try {
       await logout();
-    } catch {
-      // ignore logout api errors
+    } catch (error) {
+      handleApiError(error, "Đăng xuất thất bại vui lòng thử lại");
     } finally {
       clearAuth();
-      clearCart(); // Xóa giỏ hàng cục bộ khi logout
-      clearFavorites(); // Xóa favorites cục bộ khi logout
+      clearCart();
+      clearFavorites();
       setDropdownOpen(false);
       toast.success("Đã đăng xuất thành công!");
       router.push("/");
     }
   };
 
+  const navLinks = [
+    { name: "Trang chủ", href: "/" },
+    { 
+      name: "Sản phẩm", 
+      href: "/products", 
+      hasDropdown: true,
+      dropdownType: "all" 
+    },
+    { name: "New Arrivals", href: "/products?sort=newest" },
+    {
+      name: "Áo Nam",
+      href: "/products/category/" + (categories.find((c) => c.name === "Áo")?.slug || ""),
+      hasDropdown: true,
+      parentName: "Áo"
+    },
+    {
+      name: "Quần Nam",
+      href: "/products/category/" + (categories.find((c) => c.name === "Quần")?.slug || ""),
+      hasDropdown: true,
+      parentName: "Quần"
+    },
+    {
+      name: "Phụ kiện",
+      href: "/products/category/" + (categories.find((c) => c.name === "Phụ kiện")?.slug || ""),
+      hasDropdown: true,
+      parentName: "Phụ kiện"
+    },
+    { name: "Về chúng tôi", href: "/about" },
+  ];
+
   return (
     <>
-      <header className="sticky top-0 w-full z-50 bg-white border-b border-stone-100">
-        <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 lg:py-6">
+      <header 
+        className={cn(
+          "sticky top-0 w-full z-50 bg-white border-b border-stone-100 font-outfit overflow-visible transition-transform duration-500 ease-in-out",
+          isVisible ? "translate-y-0" : "-translate-y-full"
+        )}
+      >
+        <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 lg:py-6 overflow-visible">
           <div className="flex justify-between items-center mb-4 lg:mb-6">
             {/* Social Icons */}
             <div className="hidden lg:flex items-center gap-6 flex-1">
@@ -96,10 +166,10 @@ export default function AppHeader() {
             {/* Logo */}
             <div className="absolute left-1/2 -translate-x-1/2">
               <Link
-                className="font-serif text-2xl lg:text-3xl font-bold tracking-tighter text-black"
+                className="font-cormorant text-3xl lg:text-4xl font-bold tracking-tighter text-black uppercase italic"
                 href="/"
               >
-                ATELIER
+                DaoDuck Wear
               </Link>
             </div>
 
@@ -108,8 +178,8 @@ export default function AppHeader() {
               <div className="hidden md:flex items-center border-b border-black/10 pb-1">
                 <Search className="w-4 h-4 text-black mr-2" />
                 <input
-                  className="bg-transparent border-none p-0 text-xs focus:ring-0 placeholder:text-stone-400 w-24 lg:w-32 font-sans"
-                  placeholder="Tìm kiếm sản phẩm..."
+                  className="bg-transparent border-none p-0 text-[10px] focus:ring-0 placeholder:text-stone-400 w-24 lg:w-32 font-bold uppercase tracking-widest"
+                  placeholder="Tìm kiếm..."
                   type="text"
                 />
               </div>
@@ -126,7 +196,7 @@ export default function AppHeader() {
                     <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] text-black">
                       {user.username}
                     </span>
-                    {user.avatar && user.avatar !== "" ? (
+                    {user.avatar ? (
                       <img
                         src={user.avatar}
                         alt={user.username}
@@ -136,7 +206,10 @@ export default function AppHeader() {
                       <User className="w-6 h-6 text-black" />
                     )}
                     <ChevronDown
-                      className={`w-3 h-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                      className={cn(
+                        "w-3 h-3 transition-transform",
+                        dropdownOpen && "rotate-180",
+                      )}
                     />
                   </button>
 
@@ -149,11 +222,6 @@ export default function AppHeader() {
                         <p className="text-xs font-bold truncate text-black uppercase tracking-tight">
                           {user.username}
                         </p>
-                        {user.email && (
-                          <p className="text-[10px] text-stone-500 truncate mt-1 normal-case tracking-normal font-medium">
-                            {user.email}
-                          </p>
-                        )}
                       </div>
                       <Link
                         href="/profile"
@@ -169,15 +237,6 @@ export default function AppHeader() {
                           Trang quản trị
                         </Link>
                       )}
-                      <button
-                        onClick={() => {
-                          setIsFavoriteOpen(true);
-                          setDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors"
-                      >
-                        Danh sách yêu thích
-                      </button>
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors"
@@ -196,7 +255,7 @@ export default function AppHeader() {
                 </Link>
               )}
 
-              <button 
+              <button
                 onClick={() => setIsFavoriteOpen(true)}
                 className="hover:opacity-60 transition-opacity hidden sm:block relative group"
               >
@@ -212,6 +271,7 @@ export default function AppHeader() {
                 onClick={() => {
                   if (!user) {
                     toast.info("Vui lòng đăng nhập để xem giỏ hàng");
+                    router.push("/login");
                   } else {
                     setIsCartOpen(true);
                   }
@@ -229,43 +289,84 @@ export default function AppHeader() {
           </div>
 
           {/* Navigation Links Centered */}
-          <nav className="flex justify-center gap-6 lg:gap-10 items-center mt-4 lg:mt-8 overflow-x-auto no-scrollbar pb-2">
-            <Link
-              className="text-black border-b border-black pb-0.5 font-medium text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
-              href="/shop"
-            >
-              Cửa hàng
-            </Link>
-            <Link
-              className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
-              href="/shop?gender=men"
-            >
-              Nam
-            </Link>
-            <Link
-              className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
-              href="/shop?gender=women"
-            >
-              Nữ
-            </Link>
-            <Link
-              className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
-              href="/accessories"
-            >
-              Phụ kiện
-            </Link>
-            <Link
-              className="text-stone-500 font-medium hover:text-black text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap"
-              href="/about"
-            >
-              Về chúng tôi
-            </Link>
+          <nav className="flex justify-center gap-6 lg:gap-10 items-center mt-4 lg:mt-8 overflow-x-auto lg:overflow-visible no-scrollbar pb-2">
+            {navLinks.map((link) => (
+              <div key={link.name} className="relative group">
+                <Link
+                  href={link.href}
+                  className={cn(
+                    "font-bold text-[10px] lg:text-[11px] uppercase tracking-[0.25em] transition-all whitespace-nowrap pb-1 border-b-2 border-transparent hover:border-black",
+                    pathname === link.href
+                      ? "text-black border-black"
+                      : "text-stone-500 hover:text-black",
+                  )}
+                >
+                  {link.name}
+                </Link>
+
+                {link.hasDropdown && (
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div className="bg-white border border-stone-100 shadow-2xl p-8 min-w-[240px] grid grid-cols-1 gap-6">
+                      {/* Case 1: Dropdown for "Sản phẩm" */}
+                      {link.dropdownType === "all" && 
+                        categories.map((parent) => (
+                          <div key={parent.id} className="space-y-3">
+                            <Link
+                              href={`/products/category/${parent.slug}`}
+                              className="text-[11px] font-black uppercase tracking-widest text-black hover:text-stone-500 transition-colors"
+                            >
+                              {parent.name}
+                            </Link>
+                            {parent.children && parent.children.length > 0 && (
+                              <div className="flex flex-col gap-2 pl-3 border-l border-stone-100">
+                                {parent.children.map((child: any) => (
+                                  <Link
+                                    key={child.id}
+                                    href={`/products/category/${child.slug}`}
+                                    className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-black transition-colors font-medium"
+                                  >
+                                    {child.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      }
+
+                      {/* Case 2: Dropdown for specific category */}
+                      {link.parentName && (
+                        <div className="space-y-4">
+                           <div className="grid grid-cols-1 gap-3">
+                              {categories
+                                .find(cat => cat.name === link.parentName)
+                                ?.children?.map((child: any) => (
+                                  <Link 
+                                    key={child.id}
+                                    href={`/products/category/${child.slug}`}
+                                    className="text-[12px] font-bold uppercase tracking-widest text-stone-500 hover:text-black hover:translate-x-1 transition-all"
+                                  >
+                                    {child.name}
+                                  </Link>
+                                ))
+                              }
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </nav>
         </div>
       </header>
 
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <FavoriteSidebar isOpen={isFavoriteOpen} onClose={() => setIsFavoriteOpen(false)} />
+      <FavoriteSidebar
+        isOpen={isFavoriteOpen}
+        onClose={() => setIsFavoriteOpen(false)}
+      />
     </>
   );
 }
