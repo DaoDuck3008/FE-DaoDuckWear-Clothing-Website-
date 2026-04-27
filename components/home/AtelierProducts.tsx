@@ -17,7 +17,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-export const AtelierProductCard = ({ product }: ProductCardProps) => {
+export const DAODUCKWEARProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="group/card cursor-pointer">
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-stone-100">
@@ -61,15 +61,15 @@ export const AtelierProductCard = ({ product }: ProductCardProps) => {
   );
 };
 
-interface AtelierProductSectionProps {
+interface DAODUCKWEARProductSectionProps {
   title: string;
   products: Product[];
 }
 
-export const AtelierProductSection = ({
+export const DAODUCKWEARProductSection = ({
   title,
   products,
-}: AtelierProductSectionProps) => {
+}: DAODUCKWEARProductSectionProps) => {
   return (
     <section className="max-w-[1920px] mx-auto px-6 lg:px-12 py-16 lg:py-24 mb-12">
       <h2 className="text-2xl font-bold tracking-tighter uppercase mb-8">
@@ -82,7 +82,7 @@ export const AtelierProductSection = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <AtelierProductCard key={product.id} product={product} />
+            <DAODUCKWEARProductCard key={product.id} product={product} />
           ))}
         </div>
 

@@ -6,10 +6,10 @@ export default function AppFooter() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end max-w-[1920px] mx-auto">
         <div>
           <Link
-            className="font-serif text-2xl italic font-bold tracking-tighter text-black block mb-8"
+            className="font-cormorant text-2xl italic font-bold tracking-tighter text-black block mb-8"
             href="/"
           >
-            ATELIER
+            DAODUCK WEAR
           </Link>
           <div className="flex gap-6 mb-8">
             <a className="hover:opacity-60 transition-opacity" href="#">
@@ -35,7 +35,7 @@ export default function AppFooter() {
             </a>
           </div>
           <div className="text-stone-500 mt-8 normal-case tracking-normal space-y-2">
-            <p>Email: contact@thedigitalatelier.com</p>
+            <p>Email: contact@daoDuckWear.com</p>
             <p>Hotline: 1800 1234</p>
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function AppFooter() {
           </nav>
 
           <p className="text-stone-500 border-t border-stone-200 pt-8 w-full md:w-auto text-center md:text-right">
-            © 2024 THE DIGITAL ATELIER. CRAFTED WITH INTENTION. ALL RIGHTS
+            © 2024 THE DIGITAL DAODUCK WEAR. CRAFTED WITH INTENTION. ALL RIGHTS
             RESERVED.
           </p>
         </div>

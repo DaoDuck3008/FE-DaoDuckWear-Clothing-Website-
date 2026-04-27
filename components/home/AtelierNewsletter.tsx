@@ -1,9 +1,9 @@
-const AtelierNewsletter = () => {
+const DAODUCKWEARNewsletter = () => {
   return (
     <section className="py-24 lg:py-32 px-6 lg:px-12 text-center bg-white border-t border-stone-100">
       <div className="max-w-2xl mx-auto">
-        <h2 className=" text-3xl md:text-4xl font-bold tracking-tighter mb-6">
-          Trở thành một phần của Atelier
+        <h2 className=" text-3xl font-cormorant italic md:text-4xl font-bold tracking-tighter mb-6">
+          Trở thành một phần của DAODUCK WEAR
         </h2>
         <p className="font-sans text-stone-500 mb-10 text-sm md:text-base leading-relaxed">
           Đăng ký nhận bản tin để không bỏ lỡ những bộ sưu tập mới nhất, ưu đãi
@@ -28,4 +28,4 @@ const AtelierNewsletter = () => {
   );
 };
 
-export default AtelierNewsletter;
+export default DAODUCKWEARNewsletter;

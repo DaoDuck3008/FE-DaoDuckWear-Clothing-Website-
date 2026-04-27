@@ -49,7 +49,7 @@ export default function AdminHeader() {
             className="flex items-baseline gap-2 font-serif tracking-tighter text-black"
             href="/admin"
           >
-            <span className="text-xl lg:text-2xl font-bold">ATELIER</span>
+            <span className="text-xl lg:text-2xl font-bold">DAODUCK WEAR</span>
             <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400">
               Admin
             </span>

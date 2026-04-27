@@ -81,10 +81,10 @@ export default function LoginPage() {
             href="/"
             className="font-serif text-3xl font-bold tracking-tighter mb-8 block"
           >
-            ATELIER
+            DAODUCK WEAR
           </Link>
           <p className="text-[10px] uppercase tracking-[0.4em] font-medium max-w-xs leading-loose">
-            "The Digital Atelier - Where craftsmanship meets contemporary
+            "The Digital DAODUCK WEAR - Where craftsmanship meets contemporary
             design."
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
               href="/"
               className="lg:hidden font-serif text-2xl font-bold tracking-tighter mb-8 block"
             >
-              ATELIER
+              DAODUCK WEAR
             </Link>
             <h1 className="font-serif text-4xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
               Đăng nhập tài khoản
@@ -129,7 +129,7 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={handleChange}
                   className={`w-full bg-transparent border-b ${errors.email ? "border-red-500" : "border-stone-200"} focus:border-black py-3 text-sm transition-colors outline-none font-medium`}
-                  placeholder="example@atelier.com"
+                  placeholder="example@DAODUCK WEAR.com"
                 />
                 {errors.email && (
                   <p className="text-[10px] text-red-500 uppercase tracking-wider">

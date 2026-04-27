@@ -87,7 +87,7 @@ export default function AdminSidebar() {
             href="/admin"
             className="font-serif text-xl font-bold tracking-tighter"
           >
-            ATELIER
+            DAODUCK WEAR
           </Link>
         )}
         <button

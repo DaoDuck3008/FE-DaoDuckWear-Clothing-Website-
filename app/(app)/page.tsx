@@ -1,6 +1,6 @@
 import AtelierHero from "@/components/home/AtelierHero";
-import { AtelierProductSection } from "@/components/home/AtelierProducts";
-import AtelierNewsletter from "@/components/home/AtelierNewsletter";
+import { DAODUCKWEARProductSection } from "@/components/home/AtelierProducts";
+import DAODUCKWEARNewsletter from "@/components/home/AtelierNewsletter";
 
 const TROUSERS_COLLECTION = [
   {
@@ -131,21 +131,21 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex flex-col">
         {/* Collection Sections */}
-        <AtelierProductSection
+        <DAODUCKWEARProductSection
           title="BỘ SƯU TẬP QUẦN ÂU"
           products={TROUSERS_COLLECTION}
         />
-        <AtelierProductSection
+        <DAODUCKWEARProductSection
           title="BỘ SƯU TẬP SƠ MI"
           products={SHIRTS_COLLECTION}
         />
-        <AtelierProductSection
+        <DAODUCKWEARProductSection
           title="BỘ SƯU TẬP ÁO KHOÁC"
           products={JACKETS_COLLECTION}
         />
 
         {/* Newsletter Section */}
-        <AtelierNewsletter />
+        <DAODUCKWEARNewsletter />
       </main>
     </div>
   );
