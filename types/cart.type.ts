@@ -8,5 +8,7 @@ export interface CartItem {
   size: string;
   quantity: number;
   slug: string;
-  dbId?: string; // ID từ database
+  shopId: string;
+  shopName?: string;
+  id: string;
 }

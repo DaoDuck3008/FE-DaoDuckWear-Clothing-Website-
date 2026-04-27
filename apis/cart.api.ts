@@ -5,8 +5,8 @@ export const cartApi = {
     return api.get("/cart");
   },
 
-  addToCart: (variantId: string, quantity: number) => {
-    return api.post("/cart/add", { variantId, quantity });
+  addToCart: (variantId: string, quantity: number, shopId: string) => {
+    return api.post("/cart/add", { variantId, quantity, shopId });
   },
 
   updateQuantity: (itemId: string, quantity: number) => {

@@ -28,3 +28,11 @@ export const logout = async () => {
 export const refresh = async () => {
   return api.post("/auth/refresh");
 };
+
+export const getProfile = async () => {
+  try {
+    return api.get("/auth/profile");
+  } catch (error: any) {
+    throw error;
+  }
+};

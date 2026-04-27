@@ -6,6 +6,8 @@ import { cn } from "@/utils/cn";
 import ModalPortal from "../ui/modalPortal";
 import { useCartStore } from "@/stores/cart.store";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -17,6 +19,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [isAnimate, setIsAnimate] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice, totalItems } =
     useCartStore();
+
+  const router = useRouter();
 
   // Xử lý hiệu ứng slide vào và ra
   useEffect(() => {
@@ -38,6 +42,16 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   }, [isOpen]);
 
   if (!shouldRender) return null;
+
+  const handleCheckout = () => {
+    if (items.length === 0) {
+      toast.warning("Giỏ hàng đang trống");
+      return;
+    }
+
+    router.push("/checkout");
+    onClose();
+  };
 
   return (
     <ModalPortal>
@@ -94,7 +108,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 <div key={item.variantId} className="flex gap-4 group">
                   <div className="w-24 h-32 bg-stone-50 overflow-hidden border border-stone-100 shrink-0">
                     <img
-                      src={item.image || "https://placehold.co/400x600?text=No+Image"}
+                      src={
+                        item.image ||
+                        "https://placehold.co/400x600?text=No+Image"
+                      }
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -110,7 +127,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {item.name}
                       </Link>
                       <button
-                        onClick={() => removeItem(item.variantId)}
+                        onClick={() => removeItem(item.id)}
                         className="text-stone-300 hover:text-red-500 transition-colors shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -124,7 +141,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <div className="flex items-center border border-stone-100 rounded-sm">
                         <button
                           onClick={() =>
-                            updateQuantity(item.variantId, item.quantity - 1)
+                            updateQuantity(item.id, item.quantity - 1)
                           }
                           className="p-1.5 hover:bg-stone-50 transition-colors"
                         >
@@ -137,7 +154,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.variantId, item.quantity + 1)
+                            updateQuantity(item.id, item.quantity + 1)
                           }
                           className="p-1.5 hover:bg-stone-50 transition-colors"
                         >
@@ -166,7 +183,10 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 </span>
               </div>
               <div className="space-y-3">
-                <button className="w-full bg-black text-white h-12 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-stone-800 transition-all shadow-xl active:scale-[0.98]">
+                <button
+                  onClick={handleCheckout}
+                  className="w-full bg-black text-white h-12 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-stone-800 transition-all shadow-xl active:scale-[0.98]"
+                >
                   Tiến hành thanh toán
                 </button>
                 <Link
