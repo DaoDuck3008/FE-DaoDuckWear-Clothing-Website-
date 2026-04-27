@@ -1,4 +1,8 @@
-export type CategoryNode = { id: string; name: string; children: CategoryNode[] };
+export type CategoryNode = {
+  id: string;
+  name: string;
+  children: CategoryNode[];
+};
 
 export type Variant = {
   id: string;
@@ -8,6 +12,7 @@ export type Variant = {
   price: number | string;
   sku: string;
   stock: number | string;
+  image?: string;
   inventories?: {
     shopId: string;
     quantity: number;

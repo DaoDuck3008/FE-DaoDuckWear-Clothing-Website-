@@ -15,6 +15,7 @@ import { ProductImage } from "@/types/product";
 interface ProductGalleryProps {
   images: ProductImage[];
   selectedColor: string | null;
+  variantImage?: string | null;
   productName: string;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -25,21 +26,29 @@ const PLACEHOLDER_IMAGE = "https://placehold.co/600x800?text=No+Image";
 export default function ProductGallery({
   images,
   selectedColor,
+  variantImage,
   productName,
   isFavorite = false,
   onToggleFavorite,
 }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isUsingVariantImage, setIsUsingVariantImage] = useState(false);
   const thumbRef = React.useRef<HTMLDivElement>(null);
 
-  // Đồng bộ ảnh khi đổi màu
+  // Đồng bộ ảnh khi đổi màu hoặc nhận variantImage mới
   useEffect(() => {
+    if (variantImage) {
+      setIsUsingVariantImage(true);
+      return;
+    }
+
     if (selectedColor) {
+      setIsUsingVariantImage(false);
       const colorIndex = images.findIndex((img) => img.color === selectedColor);
       if (colorIndex !== -1) setActiveIndex(colorIndex);
     }
-  }, [selectedColor, images]);
+  }, [selectedColor, variantImage, images]);
 
   // Tự động cuộn thumbnail vào vùng nhìn thấy
   useEffect(() => {
@@ -57,15 +66,20 @@ export default function ProductGallery({
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setIsUsingVariantImage(false);
     setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setIsUsingVariantImage(false);
     setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const activeImage = images[activeIndex]?.url || PLACEHOLDER_IMAGE;
+  const activeImage =
+    isUsingVariantImage && variantImage
+      ? variantImage
+      : images[activeIndex]?.url || PLACEHOLDER_IMAGE;
 
   return (
     <>
@@ -78,10 +92,13 @@ export default function ProductGallery({
           {images.map((img, idx) => (
             <button
               key={img.id || idx}
-              onClick={() => setActiveIndex(idx)}
+              onClick={() => {
+                setIsUsingVariantImage(false);
+                setActiveIndex(idx);
+              }}
               className={cn(
                 "w-20 h-24 border flex-shrink-0 transition-all overflow-hidden  bg-white",
-                activeIndex === idx
+                !isUsingVariantImage && activeIndex === idx
                   ? "border-black scale-105 shadow-md z-10"
                   : "border-stone-100 hover:border-stone-300",
               )}

@@ -34,9 +34,13 @@ export default function ProductDetailPage() {
   const slug = params.slug as string;
   const addItem = useCartStore((state) => state.addItem);
   const user = useAuthStore((state) => state.user);
-  
+
   // Favorites logic
-  const { addItem: addFavorite, removeItem: removeFavorite, isFavorite } = useFavoriteStore();
+  const {
+    addItem: addFavorite,
+    removeItem: removeFavorite,
+    isFavorite,
+  } = useFavoriteStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,7 @@ export default function ProductDetailPage() {
       try {
         setLoading(true);
         const productData = await productApi.getProductBySlug(slug);
-        
+
         setProduct(productData);
 
         if (productData.variants && productData.variants.length > 0) {
@@ -102,19 +106,19 @@ export default function ProductDetailPage() {
   const shops = useMemo(() => {
     if (!product) return [];
     const shopMap = new Map<string, Shop>();
-    
-    product.variants.forEach(variant => {
-      variant.inventories?.forEach(inv => {
+
+    product.variants.forEach((variant) => {
+      variant.inventories?.forEach((inv) => {
         if (inv.shop && !shopMap.has(inv.shopId)) {
           shopMap.set(inv.shopId, {
             id: inv.shopId,
             name: inv.shop.name,
-            cityName: (inv.shop as any).cityName
+            cityName: (inv.shop as any).cityName,
           });
         }
       });
     });
-    
+
     return Array.from(shopMap.values());
   }, [product]);
 
@@ -122,10 +126,15 @@ export default function ProductDetailPage() {
     if (!selectedVariant) return 0;
     if (!selectedShopId) {
       // Nếu chưa chọn shop, trả về tổng tồn kho
-      return (selectedVariant.inventories || []).reduce((sum, inv) => sum + inv.quantity, 0);
+      return (selectedVariant.inventories || []).reduce(
+        (sum, inv) => sum + inv.quantity,
+        0,
+      );
     }
     // Trả về tồn kho của shop đã chọn
-    const shopInv = (selectedVariant.inventories || []).find(inv => inv.shopId === selectedShopId);
+    const shopInv = (selectedVariant.inventories || []).find(
+      (inv) => inv.shopId === selectedShopId,
+    );
     return shopInv ? shopInv.quantity : 0;
   }, [selectedVariant, selectedShopId]);
 
@@ -177,6 +186,11 @@ export default function ProductDetailPage() {
       return;
     }
 
+    if (!selectedShopId) {
+      toast.warning("Vui lòng chọn cửa hàng");
+      return;
+    }
+
     if (!product) return;
 
     // Tìm variant thực sự từ database dựa trên màu và size đã chọn
@@ -195,13 +209,16 @@ export default function ProductDetailPage() {
       productId: product.id,
       name: product.name,
       image:
+        selectedVariant.image ||
         product.images.find((img) => img.color === selectedColor)?.url ||
-        product.images[0].url,
+        product.images[0]?.url ||
+        "",
       price: Number(selectedVariant.price) || displayPrice,
       color: selectedColor,
       size: selectedSize,
       quantity: quantity,
       slug: product.slug,
+      shopId: selectedShopId,
     });
 
     toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
@@ -250,6 +267,11 @@ export default function ProductDetailPage() {
             <ProductGallery
               images={product.images}
               selectedColor={selectedColor}
+              variantImage={
+                product.variants.find(
+                  (v) => v.color === selectedColor && v.image,
+                )?.image
+              }
               productName={product.name}
               isFavorite={isFavorite(product.id)}
               onToggleFavorite={handleToggleFavorite}
@@ -301,9 +323,15 @@ export default function ProductDetailPage() {
               </label>
               <div className="flex flex-wrap gap-2">
                 {colors.map((c) => {
-                  const colorImg = product.images.find(
-                    (img) => img.color === c,
+                  // Ưu tiên tìm ảnh trong variants khớp với màu này
+                  const variantWithImage = product.variants.find(
+                    (v) => v.color === c && v.image,
                   );
+                  const colorImgUrl =
+                    variantWithImage?.image ||
+                    product.images.find((img) => img.color === c)?.url ||
+                    product.images[0]?.url ||
+                    "";
                   return (
                     <button
                       key={c}
@@ -315,9 +343,9 @@ export default function ProductDetailPage() {
                           : "border-stone-100 hover:border-stone-300",
                       )}
                     >
-                      {colorImg ? (
+                      {colorImgUrl ? (
                         <img
-                          src={colorImg.url}
+                          src={colorImgUrl}
                           alt={c}
                           className="w-full h-full object-cover"
                           title={c}
@@ -404,7 +432,11 @@ export default function ProductDetailPage() {
                 {selectedVariant && (
                   <div className="flex flex-col">
                     <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 italic">
-                      * {selectedShopId ? "Tồn kho chi nhánh:" : "Tổng tồn kho hệ thống:"} {currentStock} sản phẩm
+                      *{" "}
+                      {selectedShopId
+                        ? "Tồn kho chi nhánh:"
+                        : "Tổng tồn kho hệ thống:"}{" "}
+                      {currentStock} sản phẩm
                     </p>
                     {currentStock === 0 && selectedShopId && (
                       <p className="text-[8px] text-red-500 font-bold uppercase tracking-tight mt-0.5">
