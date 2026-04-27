@@ -21,8 +21,15 @@ export default function AuthHydrator({
   const router = useRouter();
   const pathname = usePathname();
 
+  const hasSession = useAuthStore((s) => s.hasSession);
+
   useEffect(() => {
     const hydrate = async () => {
+      if (!hasSession) {
+        setHydrated();
+        return;
+      }
+
       try {
         const res = await refresh();
         const { accessToken, user } = res.data;
@@ -34,13 +41,13 @@ export default function AuthHydrator({
       } catch {
         clearAuth();
       } finally {
-        // đánh dấu đã hydrate xong
+        // Marked as hydrated
         setHydrated();
       }
     };
 
     hydrate();
-  }, []);
+  }, [hasSession, setAuth, clearAuth, setHydrated, fetchCart, fetchFavorites]);
 
   return <>{children}</>;
 }
