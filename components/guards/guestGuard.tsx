@@ -3,7 +3,8 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import FullPageLoading from "../ui/fullPageLoading";
+import { toast } from "react-toastify";
+import { LoadingLayer } from "../ui/LoadingLayer";
 
 interface Props {
   children: React.ReactNode;
@@ -18,11 +19,15 @@ export default function GuestGuard({ children }: Props) {
 
   useEffect(() => {
     if (hydrated && user) {
-      router.replace(redirect);
+      setTimeout(() => {
+        router.replace(redirect);
+      }, 2000);
+
+      toast.info("Bạn đã đăng nhập!");
     }
   }, [user, hydrated, router, redirect]);
 
-  if (!hydrated) return <FullPageLoading />;
+  if (!hydrated) return <LoadingLayer isLoading={!hydrated} />;
 
   if (user) {
     return null;
