@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
   CreditCard,
@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useCartStore } from "@/stores/cart.store";
+import { useBuyNowStore } from "@/stores/buy-now.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/utils/cn";
 import { orderApi } from "@/apis/order.api";
@@ -25,7 +26,17 @@ import { StatusModal } from "@/components/ui/StatusModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useCartStore();
+  const searchParams = useSearchParams();
+  const isBuyNow = searchParams.get("type") === "buynow";
+
+  const { items: cartItems, totalPrice: cartTotalPrice, clearCart } = useCartStore();
+  const buyNowItem = useBuyNowStore((s) => s.item);
+  const clearBuyNowItem = useBuyNowStore((s) => s.clearItem);
+
+  const displayItems = isBuyNow ? (buyNowItem ? [buyNowItem] : []) : cartItems;
+  const displayTotalPrice = isBuyNow 
+    ? (buyNowItem ? buyNowItem.price * buyNowItem.quantity : 0) 
+    : cartTotalPrice();
 
   const hydrated = useAuthStore((s) => s.hydrated);
 
@@ -78,10 +89,10 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   // Render Empty State if no items
-  if (hydrated && !isPageLoading && !isSuccess && items.length === 0) {
+  if (hydrated && !isPageLoading && !isSuccess && displayItems.length === 0) {
     return (
       <StatusModal
-        isOpen={items.length === 0}
+        isOpen={displayItems.length === 0}
         onClose={() => router.push("/")}
         type="warning"
         title="Giỏ hàng đang trống"
@@ -92,7 +103,7 @@ export default function CheckoutPage() {
   }
 
   const shippingFee = 30000;
-  const finalTotal = totalPrice() + shippingFee;
+  const finalTotal = displayTotalPrice + shippingFee;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -119,9 +130,7 @@ export default function CheckoutPage() {
   };
 
   const handleSubmitOrder = async () => {
-    const { cartId } = useCartStore.getState();
-
-    if (!cartId) {
+    if (!isBuyNow && !useCartStore.getState().cartId) {
       setError(
         "Không tìm thấy giỏ hàng. Vui lòng quay lại giỏ hàng và thử lại.",
       );
@@ -141,8 +150,7 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
-      const orderPayload = {
-        cartId,
+      const orderPayload: any = {
         shippingAddress: {
           fullName: formData.fullName,
           email: formData.email,
@@ -155,10 +163,25 @@ export default function CheckoutPage() {
         paymentMethod: formData.paymentMethod,
       };
 
+      if (isBuyNow && buyNowItem) {
+        orderPayload.buyNowItem = {
+          productId: buyNowItem.productId,
+          variantId: buyNowItem.variantId,
+          shopId: buyNowItem.shopId,
+          quantity: buyNowItem.quantity,
+        };
+      } else {
+        orderPayload.cartId = useCartStore.getState().cartId;
+      }
+
       await orderApi.createOrder(orderPayload);
       setIsSuccess(true);
-      clearCart();
-      // setTimeout(() => router.push("/"), 3000); // Đã có Modal xử lý việc chuyển trang
+      
+      if (isBuyNow) {
+        clearBuyNowItem();
+      } else {
+        clearCart();
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
@@ -397,11 +420,12 @@ export default function CheckoutPage() {
               Tóm tắt đơn hàng
             </h2>
             <div className="space-y-8 mb-10 max-h-[550px] overflow-y-auto pr-4 custom-scrollbar">
-              {items.map((item) => (
+              {displayItems.map((item) => (
                 <CheckoutProductCard
                   key={`${item.productId}-${item.variantId}`}
-                  item={item}
+                  item={item as any}
                   shopName={item.shopName || "Cửa hàng"}
+                  isBuyNow={isBuyNow}
                 />
               ))}
             </div>
@@ -410,7 +434,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-stone-400">
                 <span>Tạm tính</span>
                 <span className="text-black">
-                  {totalPrice().toLocaleString("vi-VN")}₫
+                  {displayTotalPrice.toLocaleString("vi-VN")}₫
                 </span>
               </div>
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-stone-400">
@@ -428,7 +452,7 @@ export default function CheckoutPage() {
                   VNĐ
                 </span>
                 <span className="text-3xl font-bold tracking-tighter">
-                  {(totalPrice() + 30000).toLocaleString("vi-VN")}₫
+                  {finalTotal.toLocaleString("vi-VN")}₫
                 </span>
               </div>
             </div>

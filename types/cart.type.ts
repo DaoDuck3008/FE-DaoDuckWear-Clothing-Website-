@@ -10,5 +10,5 @@ export interface CartItem {
   slug: string;
   shopId: string;
   shopName?: string;
-  id: string;
+  id?: string;
 }

@@ -4,6 +4,7 @@ import React from "react";
 import { Store, Minus, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useCartStore } from "@/stores/cart.store";
+import { useBuyNowStore } from "@/stores/buy-now.store";
 
 interface CheckoutProductCardProps {
   item: {
@@ -19,13 +20,32 @@ interface CheckoutProductCardProps {
     shopId: string;
   };
   shopName: string;
+  isBuyNow?: boolean;
 }
 
 export default function CheckoutProductCard({
   item,
   shopName,
+  isBuyNow = false,
 }: CheckoutProductCardProps) {
-  const { updateQuantity, removeItem } = useCartStore();
+  const { updateQuantity: updateCartQty, removeItem: removeCartItem } = useCartStore();
+  const { updateQuantity: updateBuyNowQty, clearItem: removeBuyNowItem } = useBuyNowStore();
+
+  const handleUpdateQuantity = (id: string, qty: number) => {
+    if (isBuyNow) {
+      updateBuyNowQty(qty);
+    } else {
+      updateCartQty(id, qty);
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    if (isBuyNow) {
+      removeBuyNowItem();
+    } else {
+      removeCartItem(id);
+    }
+  };
 
   return (
     <div className="flex gap-6 group font-outfit">
@@ -48,7 +68,7 @@ export default function CheckoutProductCard({
               {item.name}
             </h3>
             <button
-              onClick={() => removeItem(item.id)}
+              onClick={() => handleRemoveItem(item.id)}
               className="text-stone-300 hover:text-red-500 transition-colors shrink-0"
             >
               <Trash2 className="w-4 h-4" />
@@ -64,7 +84,7 @@ export default function CheckoutProductCard({
             <div className="flex items-center gap-3">
               <div className="flex items-center border border-stone-200 rounded-sm bg-white">
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                   className="p-1 hover:bg-stone-50 transition-colors"
                 >
                   <Minus className="w-3 h-3 text-stone-500" />
@@ -73,7 +93,7 @@ export default function CheckoutProductCard({
                   {item.quantity}
                 </span>
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                   className="p-1 hover:bg-stone-50 transition-colors"
                 >
                   <Plus className="w-3 h-3 text-stone-500" />

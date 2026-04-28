@@ -27,12 +27,14 @@ import { useFavoriteStore } from "@/stores/favorite.store";
 import { useRouter } from "next/navigation";
 import { handleApiError } from "@/utils/error.util";
 import { ShopSelect, Shop } from "@/components/ui/ShopSelect";
+import { useBuyNowStore } from "@/stores/buy-now.store";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
   const addItem = useCartStore((state) => state.addItem);
+  const setBuyNowItem = useBuyNowStore((state) => state.setItem);
   const user = useAuthStore((state) => state.user);
 
   // Favorites logic
@@ -222,6 +224,60 @@ export default function ProductDetailPage() {
     });
 
     toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+  };
+
+  const handleBuyNow = () => {
+    if (!user) {
+      toast.info("Vui lòng đăng nhập để mua hàng");
+      router.push("/login");
+      return;
+    }
+
+    if (!selectedColor) {
+      toast.warning("Vui lòng chọn màu sắc");
+      return;
+    }
+    if (!selectedSize) {
+      toast.warning("Vui lòng chọn kích cỡ");
+      return;
+    }
+    if (!selectedShopId) {
+      toast.warning("Vui lòng chọn cửa hàng");
+      return;
+    }
+
+    if (!product) return;
+
+    const selectedVariant = product.variants.find(
+      (v) => v.color === selectedColor && v.size === selectedSize,
+    );
+
+    if (!selectedVariant) {
+      toast.error("Phiên bản sản phẩm này hiện không khả dụng.");
+      return;
+    }
+
+    const selectedShop = shops.find((s) => s.id === selectedShopId);
+
+    setBuyNowItem({
+      id: `${product.id}-${selectedVariant.id}-${selectedShopId}`,
+      variantId: selectedVariant.id,
+      productId: product.id,
+      name: product.name,
+      shopName: selectedShop?.name || "Chi nhánh hệ thống",
+      image:
+        selectedVariant.image ||
+        product.images.find((img) => img.color === selectedColor)?.url ||
+        product.images[0]?.url ||
+        "",
+      price: Number(selectedVariant.price) || displayPrice,
+      color: selectedColor,
+      size: selectedSize,
+      quantity: quantity,
+      shopId: selectedShopId,
+    });
+
+    router.push("/checkout?type=buynow");
   };
 
   if (loading) {
@@ -452,7 +508,7 @@ export default function ProductDetailPage() {
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <button
-                  onClick={handleAddToCart}
+                  onClick={handleBuyNow}
                   className="flex-[3] cursor-pointer bg-black text-white h-12 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-lg active:scale-[0.98]"
                 >
                   Mua ngay
