@@ -11,7 +11,6 @@ export type Variant = {
   colorHexId?: string;
   price: number | string;
   sku: string;
-  stock: number | string;
   image?: string;
   inventories?: {
     shopId: string;

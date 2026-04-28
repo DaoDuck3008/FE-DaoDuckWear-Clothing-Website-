@@ -17,4 +17,20 @@ export const productApi = {
     const response = await api.get(`/products/${slug}`);
     return response.data;
   },
+  getAdminProducts: async (params?: any) => {
+    const response = await api.get("/products/admin", { params });
+    return response.data;
+  },
+  updateProduct: async (id: string, formData: FormData) => {
+    const response = await api.patch(`/products/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+  deleteProduct: async (id: string) => {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  },
 };

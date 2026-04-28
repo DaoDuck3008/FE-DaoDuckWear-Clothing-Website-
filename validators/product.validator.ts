@@ -10,7 +10,6 @@ export interface ProductFormErrors {
 export const validateProductForm = (data: {
   name: string;
   categoryId: string;
-  shopId: string;
   basePrice: number | string;
   variants: any[];
   mainImages: any[];
@@ -24,10 +23,6 @@ export const validateProductForm = (data: {
 
   if (!data.categoryId) {
     errors.categoryId = 'Vui lòng chọn danh mục';
-  }
-
-  if (!data.shopId) {
-    errors.shopId = 'Vui lòng chọn cửa hàng';
   }
 
   const price = Number(data.basePrice);

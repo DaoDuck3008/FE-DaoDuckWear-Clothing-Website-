@@ -15,6 +15,7 @@ import { CategoryNode } from "@/components/ui/CategorySelect";
 import { Shop } from "@/components/ui/ShopSelect";
 import { ImageItem } from "@/components/ui/ImageDropzone";
 import { handleApiError } from "@/utils/error.util";
+import { useAuthStore } from "@/stores/auth.store";
 
 export interface Color {
   id: string;
@@ -35,7 +36,6 @@ export const useProductCreate = () => {
   const [description, setDescription] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState("active");
   const [variants, setVariants] = useState<Variant[]>([]);
   const [mainImages, setMainImages] = useState<ImageItem[]>([]);
@@ -45,21 +45,18 @@ export const useProductCreate = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Đang xử lý...");
   const [categories, setCategories] = useState<CategoryNode[]>([]);
-  const [shops, setShops] = useState<Shop[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [errors, setErrors] = useState<ProductFormErrors>({});
+  const { user } = useAuthStore();
 
-  // --- Effects ---
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [categoriesData, shopsData, colorsData] = await Promise.all([
+        const [categoriesData, colorsData] = await Promise.all([
           categoryApi.getCategories(),
-          shopApi.getShops(),
           colorApi.getAll(),
         ]);
         setCategories(categoriesData);
-        setShops(shopsData);
         setColors(colorsData.data);
       } catch (error) {
         handleApiError(error, "Lỗi khi lấy dữ liệu ban đầu");
@@ -88,7 +85,6 @@ export const useProductCreate = () => {
         color: "",
         price: "",
         sku: "",
-        stock: "0",
       },
     ]);
   };
@@ -138,11 +134,19 @@ export const useProductCreate = () => {
     });
   };
 
-  const updateColorGroup = (oldColor: string, newColor: string, newColorHexId?: string) => {
+  const updateColorGroup = (
+    oldColor: string,
+    newColor: string,
+    newColorHexId?: string,
+  ) => {
     setVariants((prev) =>
       prev.map((v) => {
         if (v.color === oldColor) {
-          return { ...v, color: newColor, colorHexId: newColorHexId || v.colorHexId };
+          return {
+            ...v,
+            color: newColor,
+            colorHexId: newColorHexId || v.colorHexId,
+          };
         }
         return v;
       }),
@@ -215,7 +219,6 @@ export const useProductCreate = () => {
     const formErrors = validateProductForm({
       name,
       categoryId,
-      shopId,
       basePrice,
       variants,
       mainImages,
@@ -239,9 +242,13 @@ export const useProductCreate = () => {
       formData.append("description", description);
       formData.append("basePrice", basePrice.toString());
       formData.append("categoryId", categoryId);
-      formData.append("shopId", shopId);
       formData.append("status", status);
-      formData.append("variants", JSON.stringify(variants));
+      formData.append("variants", JSON.stringify(variants.map(v => ({
+        size: v.size,
+        color: v.color,
+        price: v.price,
+        sku: v.sku
+      }))));
 
       mainImages.forEach((img, idx) => {
         formData.append(`common_${idx}`, img.file);
@@ -276,8 +283,6 @@ export const useProductCreate = () => {
     setBasePrice,
     categoryId,
     setCategoryId,
-    shopId,
-    setShopId,
     status,
     setStatus,
     variants,
@@ -287,7 +292,6 @@ export const useProductCreate = () => {
     isSubmitting,
     loadingMessage,
     categories,
-    shops,
     colors,
     errors,
     uniqueColors,
@@ -305,5 +309,6 @@ export const useProductCreate = () => {
     removeMainImage,
     generateAutoSKUs,
     handleSubmit,
+    user,
   };
 };

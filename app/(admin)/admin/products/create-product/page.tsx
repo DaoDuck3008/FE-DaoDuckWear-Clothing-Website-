@@ -26,8 +26,6 @@ export default function CreateProductPage() {
     setBasePrice,
     categoryId,
     setCategoryId,
-    shopId,
-    setShopId,
     status,
     setStatus,
     variants,
@@ -36,7 +34,7 @@ export default function CreateProductPage() {
     isSubmitting,
     loadingMessage,
     categories,
-    shops,
+
     colors,
     errors,
     uniqueColors,
@@ -54,6 +52,7 @@ export default function CreateProductPage() {
     removeMainImage,
     generateAutoSKUs,
     handleSubmit,
+    user,
   } = useProductCreate();
 
   return (
@@ -171,18 +170,6 @@ export default function CreateProductPage() {
                     value={categoryId}
                     onChange={(id) => setCategoryId(id)}
                     categories={categories}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm uppercase tracking-[0.2em] font-bold text-stone-400">
-                    Cửa hàng / Chi nhánh
-                  </label>
-                  <ShopSelect
-                    value={shopId}
-                    onChange={(id) => setShopId(id)}
-                    shops={shops}
-                    error={errors.shopId}
                   />
                 </div>
 
@@ -343,24 +330,22 @@ export default function CreateProductPage() {
 
                           {/* Sizes Table */}
                           <div className="p-4">
-                            <div className="grid grid-cols-[120px_1fr_120px_120px_48px] gap-4 mb-2 px-1">
-                              {["Size", "SKU", "Giá riêng", "Tồn kho", ""].map(
-                                (h, i) => (
-                                  <div
-                                    key={i}
-                                    className="text-[10px] font-bold uppercase tracking-widest text-stone-400"
-                                  >
-                                    {h}
-                                  </div>
-                                ),
-                              )}
+                            <div className="grid grid-cols-[120px_1fr_120px_48px] gap-4 mb-2 px-1">
+                              {["Size", "SKU", "Giá riêng", ""].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="text-[10px] font-bold uppercase tracking-widest text-stone-400"
+                                >
+                                  {h}
+                                </div>
+                              ))}
                             </div>
 
                             <div className="space-y-3">
                               {colorVariants.map((v) => (
                                 <div
                                   key={v.id}
-                                  className="grid grid-cols-[120px_1fr_120px_120px_48px] gap-4 items-center group"
+                                  className="grid grid-cols-[120px_1fr_120px_48px] gap-4 items-center group"
                                 >
                                   <select
                                     value={v.size}
@@ -405,19 +390,6 @@ export default function CreateProductPage() {
                                       updateVariant(
                                         v.id,
                                         "price",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full bg-white border border-stone-100 px-3 py-2 text-sm outline-none focus:border-stone-300 transition-colors"
-                                  />
-
-                                  <input
-                                    type="number"
-                                    value={v.stock}
-                                    onChange={(e) =>
-                                      updateVariant(
-                                        v.id,
-                                        "stock",
                                         e.target.value,
                                       )
                                     }
