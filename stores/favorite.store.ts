@@ -16,6 +16,7 @@ interface FavoriteState {
   removeItem: (productId: string) => Promise<void>;
   isFavorite: (productId: string) => boolean;
   clearFavorites: () => Promise<void>;
+  resetFavorites: () => void;
   totalItems: () => number;
 }
 
@@ -75,6 +76,8 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
       console.error("Failed to clear favorites:", error);
     }
   },
+
+  resetFavorites: () => set({ items: [] }),
 
   totalItems: () => get().items.length,
 }));

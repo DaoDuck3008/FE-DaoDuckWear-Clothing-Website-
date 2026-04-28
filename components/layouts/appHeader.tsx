@@ -21,6 +21,7 @@ import { useFavoriteStore } from "@/stores/favorite.store";
 import { categoryApi } from "@/apis/category.api";
 import { cn } from "@/utils/cn";
 import { handleApiError } from "@/utils/error.util";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 export default function AppHeader() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function AppHeader() {
   const totalItems = useCartStore((state) => state.totalItems);
   const totalFavorites = useFavoriteStore((state) => state.totalItems);
   const clearCart = useCartStore((state) => state.clearCart);
-  const clearFavorites = useFavoriteStore((state) => state.clearFavorites);
+  const resetFavorites = useFavoriteStore((state) => state.resetFavorites);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -91,7 +92,7 @@ export default function AppHeader() {
     } finally {
       clearAuth();
       clearCart();
-      clearFavorites();
+      resetFavorites();
       setDropdownOpen(false);
       toast.success("Đã đăng xuất thành công!");
       router.push("/");
@@ -196,15 +197,12 @@ export default function AppHeader() {
                     <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] text-black">
                       {user.username}
                     </span>
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.username}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <User className="w-6 h-6 text-black" />
-                    )}
+                    <UserAvatar
+                      avatar={user.avatar}
+                      username={user.username}
+                      className="w-6 h-6 text-[10px]"
+                      fallbackIconClassName="w-4 h-4"
+                    />
                     <ChevronDown
                       className={cn(
                         "w-3 h-3 transition-transform",
@@ -215,13 +213,21 @@ export default function AppHeader() {
 
                   {dropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-100 shadow-xl z-50 p-2">
-                      <div className="px-3 py-3 border-b border-stone-100 mb-1">
-                        <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">
-                          Thành viên
-                        </p>
-                        <p className="text-xs font-bold truncate text-black uppercase tracking-tight">
-                          {user.username}
-                        </p>
+                      <div className="px-3 py-3 border-b border-stone-100 mb-1 flex items-center gap-3">
+                        <UserAvatar
+                          avatar={user.avatar}
+                          username={user.username}
+                          className="w-10 h-10 flex-shrink-0 text-sm"
+                          fallbackIconClassName="w-5 h-5"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">
+                            Thành viên
+                          </p>
+                          <p className="text-xs font-bold truncate text-black uppercase tracking-tight">
+                            {user.username}
+                          </p>
+                        </div>
                       </div>
                       <Link
                         href="/profile"

@@ -17,6 +17,14 @@ export const login = async (data: LoginForm) => {
   }
 };
 
+export const googleLogin = async (credential: string) => {
+  try {
+    return api.post("/auth/google", { credential });
+  } catch (error: any) {
+    throw error;
+  }
+};
+
 export const logout = async () => {
   try {
     return api.post("/auth/logout");

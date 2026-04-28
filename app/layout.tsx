@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter, Playfair_Display, Cormorant_Garamond, Outfit } from "next/font/google";
+import {
+  Geist_Mono,
+  Inter,
+  Playfair_Display,
+  Cormorant_Garamond,
+  Outfit,
+} from "next/font/google";
 import "@/styles/global.css";
 import { ToastContainer } from "react-toastify";
 import AuthHydrator from "@/components/providers/authHydrator";
-import ScrollToTop from "@/components/shared/ScrollToTop";
+import ScrollToTop from "@/components/ui/ScrollToTop";
+import GoogleAuthProvider from "@/components/providers/gooleAuthProvider";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -44,11 +51,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${playfair.variable} ${cormorant.variable} ${outfit.variable} ${inter.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${playfair.variable} ${cormorant.variable} ${outfit.variable} ${inter.variable} ${geistMono.variable} antialiased`}
+      >
         <AuthHydrator>
-          <div className="min-h-screen">{children}</div>
-          <ToastContainer />
-          <ScrollToTop />
+          <GoogleAuthProvider>
+            <div className="min-h-screen">{children}</div>
+            <ToastContainer />
+            <ScrollToTop />
+          </GoogleAuthProvider>
         </AuthHydrator>
       </body>
     </html>

@@ -13,6 +13,7 @@ import {
   type LoginErrors,
 } from "@/validators/login.validator";
 import { handleApiError } from "@/utils/error.util";
+import GoogleLoginButton from "@/components/auth/googleBtn";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -115,6 +116,19 @@ export default function LoginPage() {
               nhất.
             </p>
           </header>
+
+          <div className="space-y-6">
+            <GoogleLoginButton />
+            
+            <div className="relative">
+               <div className="absolute inset-0 flex items-center">
+                   <div className="w-full border-t border-stone-200"></div>
+               </div>
+               <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
+                   <span className="bg-white px-4 text-stone-400 font-bold">hoặc đăng nhập với email</span>
+               </div>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-10">
             <div className="space-y-8">
