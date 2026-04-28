@@ -43,23 +43,35 @@ export const handleApiError = (error: unknown, customMessage?: string) => {
     process.env.NODE_ENV === "development" ||
     process.env.NEXT_PUBLIC_NODE_ENV === "development"
   ) {
-    console.group("--- [FRONTEND API ERROR] ---");
-    console.error(
-      `Endpoint: [${axiosError.config?.method?.toUpperCase()}] ${axiosError.config?.url}`,
-    );
-    console.error(
-      `Status: ${axiosError.response?.status} (${apiError?.errorCode || "N/A"})`,
-    );
-    console.error(`Message: ${message}`);
-    if (apiError?.errors) console.error("Validation Errors:", apiError.errors);
-    if (apiError?.stack) {
-      console.error("Server Stack Trace:");
-      console.error(apiError.stack);
+    const status = axiosError.response?.status || 500;
+
+    if (status >= 400 && status < 500) {
+      // không log các lỗi nghiệp vụ (Client Errors: 400, 401, 403, 404...)
+      console.warn(
+        `[API Business Error] ${status} at ${axiosError.config?.url}: ${message}`,
+      );
+      if (apiError?.errors) {
+        console.warn("Validation Details:", apiError.errors);
+      }
+    } else {
+      // Log chi tiết cho lỗi Server (5xx) hoặc lỗi hệ thống/Network
+      console.group("--- [FRONTEND API ERROR] ---");
+      console.error(
+        `Endpoint: [${axiosError.config?.method?.toUpperCase()}] ${axiosError.config?.url}`,
+      );
+      console.error(`Status: ${status} (${apiError?.errorCode || "N/A"})`);
+      console.error(`Message: ${message}`);
+      if (apiError?.errors)
+        console.error("Validation Errors:", apiError.errors);
+      if (apiError?.stack) {
+        console.error("Server Stack Trace:");
+        console.error(apiError.stack);
+      }
+      console.groupEnd();
     }
-    console.groupEnd();
   }
 
-  // Trả về object lỗi đã được chuẩn hóa để component có thể xử lý thêm nếu muốn
+  // Trả về object lỗi đã được chuẩn hóa
   return {
     message,
     errorCode: apiError?.errorCode,
@@ -67,6 +79,3 @@ export const handleApiError = (error: unknown, customMessage?: string) => {
     statusCode: axiosError.response?.status || 500,
   };
 };
-
-/** Alias cho handleApiError để dùng linh hoạt */
-export const handleError = handleApiError;
