@@ -2,7 +2,7 @@
 
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { LoadingLayer } from "../ui/LoadingLayer";
 
@@ -17,12 +17,12 @@ export default function GuestGuard({ children }: Props) {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
 
-  useEffect(() => {
-    if (hydrated && user) {
-      setTimeout(() => {
-        router.replace(redirect);
-      }, 2000);
+  const isToasted = useRef(false);
 
+  useEffect(() => {
+    if (hydrated && user && !isToasted.current) {
+      isToasted.current = true;
+      router.replace(redirect);
       toast.info("Bạn đã đăng nhập!");
     }
   }, [user, hydrated, router, redirect]);

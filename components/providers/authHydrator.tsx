@@ -25,6 +25,7 @@ export default function AuthHydrator({
 
   useEffect(() => {
     const hydrate = async () => {
+      // Nếu không có session flag trong localStorage, bỏ qua việc gọi refresh api
       if (!hasSession) {
         setHydrated();
         return;
@@ -41,13 +42,13 @@ export default function AuthHydrator({
       } catch {
         clearAuth();
       } finally {
-        // Marked as hydrated
+        // đánh dấu đã hydrate xong
         setHydrated();
       }
     };
 
     hydrate();
-  }, [hasSession, setAuth, clearAuth, setHydrated, fetchCart, fetchFavorites]);
+  }, [hasSession]);
 
   return <>{children}</>;
 }

@@ -40,58 +40,60 @@ api.interceptors.response.use(
     const token = useAuthStore.getState().access_token;
 
     const isAuthRoute =
-      originalRequest.url.includes("/auth/login") ||
-      originalRequest.url.includes("/auth/register") ||
-      originalRequest.url.includes("/auth/refresh");
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/refresh");
 
-    const hasAuthHeader =
+    // Lấy token từ header của request bị lỗi thay vì chỉ lấy từ store
+    const authHeader =
       originalRequest.headers?.Authorization ||
       originalRequest.headers?.authorization;
 
     if (
       error.response?.status === 401 &&
-      token &&
-      hasAuthHeader &&
       !originalRequest._retry &&
       !isAuthRoute
     ) {
-      originalRequest._retry = true;
+      // Nếu có token (trong store hoặc trong header) thì mới thử refresh
+      if (token || authHeader) {
+        originalRequest._retry = true;
 
-      if (!isRefreshing) {
-        isRefreshing = true;
+        if (!isRefreshing) {
+          isRefreshing = true;
 
-        try {
-          const res = await api.post("/auth/refresh");
-          const { accessToken } = res.data;
+          try {
+            const res = await api.post("/auth/refresh");
+            const { accessToken } = res.data;
 
-          useAuthStore
-            .getState()
-            .setAuth(accessToken, useAuthStore.getState().user!);
+            useAuthStore
+              .getState()
+              .setAuth(accessToken, useAuthStore.getState().user!);
 
-          isRefreshing = false;
-          queue.forEach((cb) => cb(accessToken));
-          queue = [];
+            isRefreshing = false;
+            queue.forEach((cb) => cb(accessToken));
+            queue = [];
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return api(originalRequest);
-        } catch (err) {
-          const hasToken = useAuthStore.getState().access_token;
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return api(originalRequest);
+          } catch (err) {
+            const hasToken = useAuthStore.getState().access_token;
 
-          if (hasToken) {
-            useAuthStore.getState().clearAuth();
-            window.location.href = "/login";
+            if (hasToken) {
+              useAuthStore.getState().clearAuth();
+              window.location.href = "/login";
+            }
+
+            return Promise.reject(err);
           }
-
-          return Promise.reject(err);
         }
-      }
 
-      return new Promise((resolve) => {
-        queue.push((token: string) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          resolve(api(originalRequest));
+        return new Promise((resolve) => {
+          queue.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
         });
-      });
+      }
     }
 
     // Đối với các lỗi khác, chúng ta để component tự catch bằng handleError helper
