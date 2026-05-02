@@ -18,6 +18,7 @@ import { productApi } from "@/apis/product.api";
 import { toast } from "react-toastify";
 import UserAvatar from "@/components/ui/UserAvatar";
 import { formatPrice } from "@/utils/format.util";
+import { handleApiError } from "@/utils/error.util";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -34,8 +35,7 @@ export default function AdminProductsPage() {
       });
       setProducts(data);
     } catch (error) {
-      console.error("Failed to fetch admin products:", error);
-      toast.error("Không thể tải danh sách sản phẩm");
+      handleApiError(error);
     } finally {
       setLoading(false);
     }
@@ -197,7 +197,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-stone-100 text-stone-600 text-[10px] font-bold uppercase tracking-wider">
-                        {product.category?.name || "N/A"}
+                        {product.categoryId?.name || "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4">

@@ -5,28 +5,78 @@ import { useParams } from "next/navigation";
 import { Plus, Trash2, ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { CategorySelect } from "@/components/ui/CategorySelect";
 import { ShopSelect } from "@/components/ui/ShopSelect";
-import { MainImageDropzone, EditableImageDropzone } from "@/components/ui/ImageDropzone";
+import {
+  MainImageDropzone,
+  EditableImageDropzone,
+} from "@/components/ui/ImageDropzone";
 import { ColorDropdown } from "@/components/ui/ColorDropdown";
 import { STATUS_OPTIONS, SIZES } from "@/constants/product";
 import { LoadingLayer } from "@/components/ui/LoadingLayer";
 import { useProductEdit } from "@/hooks/product/useProductEdit";
+import { StatusModal } from "@/components/ui/StatusModal";
+import { useState } from "react";
 
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
 
   const {
-    name, setName, slug, description, setDescription,
-    basePrice, setBasePrice, categoryId, setCategoryId,
-    status, setStatus,
-    variants, updateVariant, generateAutoSKUs,
-    existingMainImages, existingColorImages,
-    removeExistingMainImage, setMainExistingImage, removeExistingColorImage,
-    newMainImages, newColorImages,
-    addNewMainImages, removeNewMainImage, addNewColorImages, removeNewColorImage,
-    loading, isSubmitting, loadingMessage,
-    categories, colors, uniqueColors, user,
+    name,
+    setName,
+    slug,
+    description,
+    setDescription,
+    basePrice,
+    setBasePrice,
+    categoryId,
+    setCategoryId,
+    status,
+    setStatus,
+    variants,
+    updateVariant,
+    generateAutoSKUs,
+    existingMainImages,
+    existingColorImages,
+    removeExistingMainImage,
+    setMainExistingImage,
+    removeExistingColorImage,
+    newMainImages,
+    newColorImages,
+    addNewMainImages,
+    removeNewMainImage,
+    addNewColorImages,
+    removeNewColorImage,
+    loading,
+    isSubmitting,
+    loadingMessage,
+    categories,
+    colors,
+    uniqueColors,
+    user,
+    addVariant,
+    removeVariant,
     handleSubmit,
   } = useProductEdit(id);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [variantToDelete, setVariantToDelete] = useState<string | null>(null);
+
+  const confirmDeleteVariant = (vId: string) => {
+    // Nếu là biến thể mới thêm (bắt đầu bằng new-), cho phép xóa luôn không cần hỏi
+    if (vId.startsWith("new-")) {
+      removeVariant(vId);
+      return;
+    }
+    setVariantToDelete(vId);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteVariant = () => {
+    if (variantToDelete) {
+      removeVariant(variantToDelete);
+      setDeleteModalOpen(false);
+      setVariantToDelete(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -47,7 +97,10 @@ export default function EditProductPage() {
       <div className="bg-white border-b border-stone-100 mb-2">
         <div className="max-w-[1600px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin/products" className="hover:opacity-50 transition-opacity">
+            <Link
+              href="/admin/products"
+              className="hover:opacity-50 transition-opacity"
+            >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div className="h-4 w-px bg-stone-200" />
@@ -55,7 +108,9 @@ export default function EditProductPage() {
               <span className="font-serif text-2xl font-bold tracking-tighter uppercase text-black">
                 Chỉnh sửa sản phẩm
               </span>
-              <p className="text-[10px] text-stone-400 font-mono mt-0.5">{slug}</p>
+              <p className="text-[10px] text-stone-400 font-mono mt-0.5">
+                {slug}
+              </p>
             </div>
           </div>
 
@@ -123,7 +178,9 @@ export default function EditProductPage() {
                       type="text"
                       inputMode="numeric"
                       value={basePrice}
-                      onChange={(e) => setBasePrice(e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) =>
+                        setBasePrice(e.target.value.replace(/\D/g, ""))
+                      }
                       className="flex-1 bg-transparent py-2 text-sm outline-none font-medium"
                     />
                     <span className="text-sm text-stone-400 font-bold uppercase tracking-wider pr-1 flex-shrink-0">
@@ -143,7 +200,6 @@ export default function EditProductPage() {
                     categories={categories}
                   />
                 </div>
-
 
                 {/* Trạng thái */}
                 <div className="space-y-2">
@@ -210,22 +266,32 @@ export default function EditProductPage() {
                       {variants.length} biến thể — Giá riêng biệt
                     </p>
                   </div>
-                  {variants.length > 0 && (
+                  <div className="flex items-center gap-4">
                     <button
                       type="button"
-                      onClick={generateAutoSKUs}
-                      className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4 hover:no-underline transition-all"
+                      onClick={addVariant}
+                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black bg-stone-50 px-3 py-1.5 border border-stone-200 hover:bg-stone-100 transition-all"
                     >
-                      Tự động tạo SKU
+                      <Plus className="w-3 h-3" />
+                      Thêm biến thể
                     </button>
-                  )}
+                    {variants.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={generateAutoSKUs}
+                        className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4 hover:no-underline transition-all"
+                      >
+                        Tự động tạo SKU
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-6">
                   {Array.from(new Set(variants.map((v) => v.color.trim()))).map(
                     (color, cIdx) => {
                       const colorVariants = variants.filter(
-                        (v) => v.color.trim() === color
+                        (v) => v.color.trim() === color,
                       );
 
                       return (
@@ -246,8 +312,8 @@ export default function EditProductPage() {
                           </div>
 
                           <div className="p-4">
-                            <div className="grid grid-cols-[120px_1fr_120px] gap-4 mb-2 px-1">
-                              {["Size", "SKU", "Giá riêng"].map((h, i) => (
+                            <div className="grid grid-cols-[100px_100px_1fr_100px_40px] gap-4 mb-2 px-1">
+                              {["Màu", "Size", "SKU", "Giá", ""].map((h, i) => (
                                 <div
                                   key={i}
                                   className="text-[10px] font-bold uppercase tracking-widest text-stone-400"
@@ -261,29 +327,73 @@ export default function EditProductPage() {
                               {colorVariants.map((v) => (
                                 <div
                                   key={v.id}
-                                  className="grid grid-cols-[120px_1fr_120px] gap-4 items-center"
+                                  className="grid grid-cols-[100px_100px_1fr_100px_40px] gap-4 items-center"
                                 >
-                                  <div className="bg-white border border-stone-100 px-3 py-2 text-sm font-bold uppercase text-center">
-                                    {v.size}
-                                  </div>
+                                  <input
+                                    value={v.color}
+                                    onChange={(e) =>
+                                      updateVariant(
+                                        v.id,
+                                        "color",
+                                        e.target.value.toUpperCase(),
+                                      )
+                                    }
+                                    className="w-full bg-white border border-stone-100 px-2 py-2 text-[11px] font-bold uppercase outline-none focus:border-stone-300"
+                                  />
+                                  <select
+                                    value={v.size}
+                                    onChange={(e) =>
+                                      updateVariant(
+                                        v.id,
+                                        "size",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="w-full bg-white border border-stone-100 px-2 py-2 text-[11px] font-bold uppercase outline-none focus:border-stone-300"
+                                  >
+                                    {SIZES.map((s) => (
+                                      <option key={s} value={s}>
+                                        {s}
+                                      </option>
+                                    ))}
+                                  </select>
                                   <input
                                     value={v.sku}
-                                    onChange={(e) => updateVariant(v.id, "sku", e.target.value)}
+                                    onChange={(e) =>
+                                      updateVariant(v.id, "sku", e.target.value)
+                                    }
                                     className="w-full bg-white border border-stone-100 px-3 py-2 text-sm outline-none focus:border-stone-300 transition-colors"
+                                    placeholder="Mã SKU..."
                                   />
                                   <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
                                     value={v.price}
-                                    onChange={(e) => updateVariant(v.id, "price", e.target.value)}
+                                    onChange={(e) =>
+                                      updateVariant(
+                                        v.id,
+                                        "price",
+                                        e.target.value.replace(/\D/g, ""),
+                                      )
+                                    }
                                     className="w-full bg-white border border-stone-100 px-3 py-2 text-sm outline-none focus:border-stone-300 transition-colors"
+                                    placeholder="Giá..."
                                   />
+                                  <button
+                                    type="button"
+                                    onClick={() => confirmDeleteVariant(v.id)}
+                                    className="w-8 h-8 flex items-center justify-center text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-full"
+                                    title="Xóa biến thể này"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
                                 </div>
                               ))}
                             </div>
                           </div>
                         </div>
                       );
-                    }
+                    },
                   )}
                 </div>
               </div>
@@ -313,7 +423,9 @@ export default function EditProductPage() {
                           existingImages={existingColorImages[color] || []}
                           newImages={newColorImages[color] || []}
                           onAddNew={(files) => addNewColorImages(color, files)}
-                          onRemoveExisting={(imgId) => removeExistingColorImage(color, imgId)}
+                          onRemoveExisting={(imgId) =>
+                            removeExistingColorImage(color, imgId)
+                          }
                           onRemoveNew={(idx) => removeNewColorImage(color, idx)}
                           maxImages={8}
                           note={`Album ảnh riêng cho màu ${color}.`}
@@ -327,6 +439,17 @@ export default function EditProductPage() {
           </div>
         </div>
       </form>
+
+      <StatusModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={() => handleDeleteVariant()}
+        type="warning"
+        title="Xác nhận xóa biến thể"
+        description="Việc xóa này có thể ảnh hưởng tới quá trình kinh doanh ở các cửa hàng, bạn có chắc không? Bạn vẫn có thể hoàn tác khi nhấn Hủy thay đổi ở phía trên."
+        confirmText="Tôi chắc chắn"
+        cancelText="Để tôi xem lại"
+      />
     </div>
   );
 }

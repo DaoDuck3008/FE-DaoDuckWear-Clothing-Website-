@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 export type CategoryNode = {
@@ -22,6 +22,25 @@ export function CategorySelect({
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState("");
+
+  // Tự động tìm label khi value hoặc categories thay đổi
+  useEffect(() => {
+    if (value && categories.length > 0) {
+      const findLabel = (nodes: CategoryNode[], parent?: string): string | null => {
+        for (const node of nodes) {
+          if (node.id === value) return parent ? `${parent} › ${node.name}` : node.name;
+          if (node.children?.length > 0) {
+            const label = findLabel(node.children, node.name);
+            if (label) return label;
+          }
+        }
+        return null;
+      };
+      setSelectedLabel(findLabel(categories) || "");
+    } else if (!value) {
+      setSelectedLabel("");
+    }
+  }, [value, categories]);
 
   const handleSelect = (cat: CategoryNode, parentName?: string) => {
     const label = parentName ? `${parentName} › ${cat.name}` : cat.name;

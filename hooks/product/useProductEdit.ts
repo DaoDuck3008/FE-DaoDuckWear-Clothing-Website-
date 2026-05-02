@@ -87,7 +87,9 @@ export const useProductEdit = (slugOrId: string) => {
         setSlug(productData.slug);
         setDescription(productData.description || "");
         setBasePrice(productData.basePrice?.toString() || "");
-        setCategoryId(productData.category?.id || productData.categoryId || "");
+        setCategoryId(
+          productData.category?.id || productData.category?._id || "",
+        );
         setStatus(productData.status || "active");
 
         // Phân loại ảnh chung vs ảnh màu
@@ -151,6 +153,21 @@ export const useProductEdit = (slugOrId: string) => {
     setVariants((prev) =>
       prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)),
     );
+  };
+
+  const addVariant = () => {
+    const newVariant: EditVariant = {
+      id: `new-${Date.now()}`, // ID tạm thời để React quản lý key
+      size: "M",
+      color: "DEFAULT",
+      price: basePrice || "",
+      sku: "",
+    };
+    setVariants((prev) => [...prev, newVariant]);
+  };
+
+  const removeVariant = (id: string) => {
+    setVariants((prev) => prev.filter((v) => v.id !== id));
   };
 
   // --- Existing Image Handlers ---
@@ -237,7 +254,7 @@ export const useProductEdit = (slugOrId: string) => {
         "variants",
         JSON.stringify(
           variants.map((v) => ({
-            id: v.id,
+            id: v.id.startsWith("new-") ? undefined : v.id,
             price: v.price,
             sku: v.sku,
             size: v.size,
@@ -310,6 +327,8 @@ export const useProductEdit = (slugOrId: string) => {
     colors,
     uniqueColors,
     user,
+    addVariant,
+    removeVariant,
     handleSubmit,
   };
 };

@@ -30,8 +30,12 @@ export const useCartStore = create<CartState>()(
 
         try {
           const { data } = await cartApi.getCart();
+
+          // Lọc bỏ các item mà sản phẩm không còn tồn tại (bị xóa cứng)
+          const validItems = data.items.filter((item: any) => item.product);
+
           set({
-            items: data.items,
+            items: validItems,
             cartId: data.cartId,
           });
         } catch (error) {

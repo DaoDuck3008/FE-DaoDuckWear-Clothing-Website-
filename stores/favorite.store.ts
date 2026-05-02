@@ -26,13 +26,15 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
   fetchFavorites: async () => {
     try {
       const { data } = await favoriteApi.getFavorites();
-      const mappedItems = data.map((fav: any) => ({
-        id: fav.product.id,
-        name: fav.product.name,
-        image: fav.product.images?.[0]?.url || "",
-        price: fav.product.basePrice,
-        slug: fav.product.slug,
-      }));
+      const mappedItems = data
+        .filter((fav: any) => fav.product) // Lọc bỏ các mục mà sản phẩm không còn tồn tại (bị xóa cứng)
+        .map((fav: any) => ({
+          id: fav.product.id,
+          name: fav.product.name,
+          image: fav.product.images?.[0]?.url || "",
+          price: fav.product.basePrice,
+          slug: fav.product.slug,
+        }));
       set({ items: mappedItems });
     } catch (error) {
       console.error("Failed to fetch favorites:", error);
