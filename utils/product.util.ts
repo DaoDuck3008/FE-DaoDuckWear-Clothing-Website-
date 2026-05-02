@@ -54,5 +54,5 @@ export const generateSKU = (
 
   const baseSKU = `${brandPrefix}${typePrefix}${day}${warehouse}`;
 
-  return `${baseSKU} - ${sizePart} - ${colorPart}`;
+  return `${baseSKU}-${sizePart}-${colorPart}`;
 };
