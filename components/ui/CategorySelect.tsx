@@ -55,15 +55,15 @@ export function CategorySelect({
         <button
           type="button"
           onClick={() => handleSelect(cat, parentName)}
-          className={`w-full text-left py-2 text-xs hover:bg-stone-50 transition-colors flex items-center gap-1.5
-            ${depth === 0 ? "px-3 font-bold text-stone-700" : "px-6 text-stone-500"}
-            ${value === cat.id ? "!text-black !bg-stone-100 font-bold" : ""}
+          className={`w-full text-left py-2 text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5
+            ${depth === 0 ? "px-3 font-bold text-slate-700" : "px-6 text-slate-500"}
+            ${value === cat.id ? "!text-black !bg-slate-100 font-bold" : ""}
           `}
         >
-          {depth > 0 && <span className="text-stone-300 text-[10px]">└</span>}
+          {depth > 0 && <span className="text-slate-300 text-[10px]">└</span>}
           {cat.name}
           {cat.children.length > 0 && (
-            <span className="ml-auto text-[9px] text-stone-300 uppercase tracking-wider">
+            <span className="ml-auto text-[9px] text-slate-300 uppercase tracking-wider">
               ({cat.children.length})
             </span>
           )}
@@ -78,19 +78,19 @@ export function CategorySelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between bg-transparent border-b border-stone-200 hover:border-black py-2.5 text-sm transition-colors text-left"
+        className="w-full flex items-center justify-between bg-transparent border-b border-slate-200 hover:border-black py-2.5 text-sm transition-colors text-left"
       >
         <span
           className={
             selectedLabel
               ? "text-black font-medium text-sm"
-              : "text-stone-400 text-sm"
+              : "text-slate-400 text-sm"
           }
         >
           {selectedLabel || "Chọn danh mục..."}
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-stone-400 transition-transform flex-shrink-0 ml-2 ${
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform flex-shrink-0 ml-2 ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -99,7 +99,7 @@ export function CategorySelect({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-stone-100 shadow-2xl mt-1 max-h-56 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-slate-100 shadow-2xl mt-1 max-h-56 overflow-y-auto">
             {renderTree(categories)}
           </div>
         </>

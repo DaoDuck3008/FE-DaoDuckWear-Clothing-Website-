@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { productApi } from "@/apis/product.api";
+import { Select } from "@/components/ui/Select";
 import { toast } from "react-toastify";
 import UserAvatar from "@/components/ui/UserAvatar";
 import { formatPrice } from "@/utils/format.util";
@@ -97,15 +98,16 @@ export default function AdminProductsPage() {
         </form>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-40 py-2 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none bg-white"
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Đang bán</option>
-            <option value="inactive">Ngừng bán</option>
-          </select>
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: "", label: "Tất cả trạng thái" },
+              { value: "active", label: "Đang bán" },
+              { value: "inactive", label: "Ngừng bán" },
+            ]}
+            className="w-full md:w-48"
+          />
 
           <button
             onClick={fetchProducts}

@@ -16,6 +16,7 @@ import {
   Menu,
   Home,
   ArrowLeft,
+  Warehouse,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -26,7 +27,7 @@ const menuItems = [
     href: "/admin",
   },
   {
-    title: "Sản phẩm",
+    title: "Quản lý sản phẩm",
     icon: ShoppingBag,
     href: "/admin/products",
     subItems: [
@@ -35,19 +36,33 @@ const menuItems = [
     ],
   },
   {
-    title: "Danh mục",
+    title: "Quản lý tồn kho",
+    icon: Warehouse,
+    href: "/admin/inventory",
+    subItems: [
+      { title: "Xem tồn kho", href: "/admin/inventory" },
+      { title: "Nhập kho nhanh", href: "/admin/inventory/import" },
+    ],
+  },
+  {
+    title: "Quản lý danh mục",
     icon: Layers,
     href: "/admin/categories",
   },
   {
-    title: "Đơn hàng",
+    title: "Quản lý đơn hàng",
     icon: ClipboardList,
     href: "/admin/orders",
   },
   {
-    title: "Khách hàng",
+    title: "Quản lý khách hàng",
     icon: Users,
     href: "/admin/customers",
+  },
+  {
+    title: "Quản lý nhân viên",
+    icon: Users,
+    href: "/admin/staff",
   },
   {
     title: "Cài đặt",
