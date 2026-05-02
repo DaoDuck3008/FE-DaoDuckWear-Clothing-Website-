@@ -39,7 +39,7 @@ export default function AppHeader() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 1. Only fetch categories ONCE on mount
@@ -70,7 +70,7 @@ export default function AppHeader() {
   // 2. Handle scroll logic separately to avoid re-fetching
   useEffect(() => {
     const controlHeader = () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         if (window.scrollY > lastScrollY && window.scrollY > 150) {
           setIsVisible(false); // Scrolling down
         } else {
@@ -80,8 +80,8 @@ export default function AppHeader() {
       }
     };
 
-    window.addEventListener('scroll', controlHeader);
-    return () => window.removeEventListener('scroll', controlHeader);
+    window.addEventListener("scroll", controlHeader);
+    return () => window.removeEventListener("scroll", controlHeader);
   }, [lastScrollY]);
 
   const handleLogout = async () => {
@@ -101,40 +101,46 @@ export default function AppHeader() {
 
   const navLinks = [
     { name: "Trang chủ", href: "/" },
-    { 
-      name: "Sản phẩm", 
-      href: "/products", 
+    {
+      name: "Sản phẩm",
+      href: "/products",
       hasDropdown: true,
-      dropdownType: "all" 
+      dropdownType: "all",
     },
     { name: "New Arrivals", href: "/products?sort=newest" },
     {
       name: "Áo Nam",
-      href: "/products/category/" + (categories.find((c) => c.name === "Áo")?.slug || ""),
+      href:
+        "/products/category/" +
+        (categories.find((c) => c.name === "Áo")?.slug || ""),
       hasDropdown: true,
-      parentName: "Áo"
+      parentName: "Áo",
     },
     {
       name: "Quần Nam",
-      href: "/products/category/" + (categories.find((c) => c.name === "Quần")?.slug || ""),
+      href:
+        "/products/category/" +
+        (categories.find((c) => c.name === "Quần")?.slug || ""),
       hasDropdown: true,
-      parentName: "Quần"
+      parentName: "Quần",
     },
     {
       name: "Phụ kiện",
-      href: "/products/category/" + (categories.find((c) => c.name === "Phụ kiện")?.slug || ""),
+      href:
+        "/products/category/" +
+        (categories.find((c) => c.name === "Phụ kiện")?.slug || ""),
       hasDropdown: true,
-      parentName: "Phụ kiện"
+      parentName: "Phụ kiện",
     },
     { name: "Về chúng tôi", href: "/about" },
   ];
 
   return (
     <>
-      <header 
+      <header
         className={cn(
           "sticky top-0 w-full z-50 bg-white border-b border-stone-100 font-outfit overflow-visible transition-transform duration-500 ease-in-out",
-          isVisible ? "translate-y-0" : "-translate-y-full"
+          isVisible ? "translate-y-0" : "-translate-y-full",
         )}
       >
         <div className="max-w-[1920px] mx-auto px-6 lg:px-12 py-4 lg:py-6 overflow-visible">
@@ -235,7 +241,9 @@ export default function AppHeader() {
                       >
                         Hồ sơ
                       </Link>
-                      {user.role === "ADMIN" && (
+                      {(user.role === "ADMIN" ||
+                        user.role === "STAFF" ||
+                        user.role === "MANAGER") && (
                         <Link
                           href="/admin"
                           className="block text-blue-600 px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-stone-50 transition-colors"
@@ -314,7 +322,7 @@ export default function AppHeader() {
                   <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                     <div className="bg-white border border-stone-100 shadow-2xl p-8 min-w-[240px] grid grid-cols-1 gap-6">
                       {/* Case 1: Dropdown for "Sản phẩm" */}
-                      {link.dropdownType === "all" && 
+                      {link.dropdownType === "all" &&
                         categories.map((parent) => (
                           <div key={parent.id} className="space-y-3">
                             <Link
@@ -337,26 +345,24 @@ export default function AppHeader() {
                               </div>
                             )}
                           </div>
-                        ))
-                      }
+                        ))}
 
                       {/* Case 2: Dropdown for specific category */}
                       {link.parentName && (
                         <div className="space-y-4">
-                           <div className="grid grid-cols-1 gap-3">
-                              {categories
-                                .find(cat => cat.name === link.parentName)
-                                ?.children?.map((child: any) => (
-                                  <Link 
-                                    key={child.id}
-                                    href={`/products/category/${child.slug}`}
-                                    className="text-[12px] font-bold uppercase tracking-widest text-stone-500 hover:text-black hover:translate-x-1 transition-all"
-                                  >
-                                    {child.name}
-                                  </Link>
-                                ))
-                              }
-                           </div>
+                          <div className="grid grid-cols-1 gap-3">
+                            {categories
+                              .find((cat) => cat.name === link.parentName)
+                              ?.children?.map((child: any) => (
+                                <Link
+                                  key={child.id}
+                                  href={`/products/category/${child.slug}`}
+                                  className="text-[12px] font-bold uppercase tracking-widest text-stone-500 hover:text-black hover:translate-x-1 transition-all"
+                                >
+                                  {child.name}
+                                </Link>
+                              ))}
+                          </div>
                         </div>
                       )}
                     </div>

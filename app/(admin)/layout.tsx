@@ -10,16 +10,16 @@ export default function AdminLayout({
 }) {
   return (
     <AuthGuard>
-      <RoleGuard allowedRoles={["ADMIN"]}>
+      <RoleGuard allowedRoles={["ADMIN", "STAFF", "MANAGER"]}>
         <div className="flex h-screen overflow-hidden font-sans antialiased text-black">
           {/* Sidebar */}
           <AdminSidebar />
-          
+
           {/* Main Content Area */}
           <div className="flex flex-col flex-1 overflow-hidden min-w-0">
             {/* Header stays inside content area */}
             <AdminHeader />
-            
+
             {/* Scrollable Viewport */}
             <main className="flex-1 overflow-y-auto bg-stone-50/50">
               {children}
@@ -30,4 +30,3 @@ export default function AdminLayout({
     </AuthGuard>
   );
 }
-

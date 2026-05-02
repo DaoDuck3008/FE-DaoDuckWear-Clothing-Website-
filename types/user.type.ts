@@ -5,4 +5,8 @@ export interface User {
   avatar?: string;
   role: string;
   shopId?: string;
+  shop?: {
+    _id: string;
+    name: string;
+  } | null;
 }

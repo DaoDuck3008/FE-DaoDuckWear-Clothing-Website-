@@ -51,7 +51,7 @@ export default function AdminHeader() {
           >
             <span className="text-xl lg:text-2xl font-bold">DAODUCK WEAR</span>
             <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400">
-              Admin
+              Trung tâm điều khiển
             </span>
           </Link>
         </div>
@@ -67,9 +67,16 @@ export default function AdminHeader() {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="hover:opacity-60 transition-opacity flex items-center gap-2 border hover:border-black rounded-full px-3 py-1.5"
               >
-                <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.2em] text-black">
-                  {user.username}
-                </span>
+                <div className="hidden md:flex flex-col items-end leading-none">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black">
+                    {user.username}
+                  </span>
+                  {user.shop && (
+                    <span className="text-[8px] font-medium text-stone-500 uppercase tracking-widest mt-0.5">
+                      {user.shop.name}
+                    </span>
+                  )}
+                </div>
                 {user.avatar ? (
                   <img
                     src={user.avatar}
@@ -99,6 +106,16 @@ export default function AdminHeader() {
                       <p className="text-[10px] text-stone-500 truncate mt-1 normal-case tracking-normal font-medium">
                         {user.email}
                       </p>
+                    )}
+                    {user.shop && (
+                      <div className="mt-2 pt-2 border-t border-stone-50">
+                        <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">
+                          Chi nhánh
+                        </p>
+                        <p className="text-[10px] font-bold text-blue-600 uppercase">
+                          {user.shop.name}
+                        </p>
+                      </div>
                     )}
                   </div>
                   <Link
