@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { inventoryApi } from "@/apis/inventory.api";
+import { useAuthStore } from "@/stores/auth.store";
+import { ShopSelect } from "@/components/ui/ShopSelect";
+import { shopApi } from "@/apis/shop.api";
 import { Select } from "@/components/ui/Select";
 import { toast } from "react-toastify";
 import {
@@ -26,12 +29,32 @@ export default function ProductInventoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"sku" | "quantity" | "name">("name");
+  const searchParams = useSearchParams();
+  const user = useAuthStore((state) => state.user);
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState(
+    searchParams.get("shopId") || "",
+  );
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      shopApi.getShops().then((res) => setShops(res));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const sId = searchParams.get("shopId");
+    if (sId) setSelectedShopId(sId);
+  }, [searchParams]);
 
   const fetchProductData = async () => {
     if (!slug) return;
     setLoading(true);
     try {
-      const data = await inventoryApi.getProductInventory(slug as string);
+      const data = await inventoryApi.getProductInventory(
+        slug as string,
+        selectedShopId || undefined,
+      );
       setProduct(data);
     } catch (error) {
       handleApiError(error);
@@ -42,7 +65,7 @@ export default function ProductInventoryPage() {
 
   useEffect(() => {
     fetchProductData();
-  }, [slug]);
+  }, [slug, selectedShopId]);
 
   // Lọc và sắp xếp variants local
   const filteredVariants = useMemo(() => {
@@ -78,6 +101,7 @@ export default function ProductInventoryPage() {
         productId: product.id,
         variantId,
         quantity,
+        shopId: selectedShopId || undefined,
       });
       toast.success("Đã cập nhật tồn kho");
       // Update local state
@@ -147,7 +171,11 @@ export default function ProductInventoryPage() {
           </button>
           <div>
             <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">
-              Tồn kho: {product.name}
+              Tồn kho: {product.name} -{" "}
+              {user?.role === "ADMIN"
+                ? shops.find((s) => s.id === selectedShopId)?.name ||
+                  "Toàn hệ thống"
+                : user?.shop?.name}
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-2 flex items-center gap-2">
               <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
@@ -157,6 +185,15 @@ export default function ProductInventoryPage() {
             </p>
           </div>
         </div>
+        {user?.role === "ADMIN" && (
+          <div className="w-64">
+            <ShopSelect
+              value={selectedShopId}
+              onChange={(id) => setSelectedShopId(id)}
+              shops={shops}
+            />
+          </div>
+        )}
       </div>
 
       {/* Control Bar */}
@@ -192,7 +229,7 @@ export default function ProductInventoryPage() {
             </label>
             <Select
               value={sortBy}
-              onChange={(val) => setSortBy(val)}
+              onChange={(val) => setSortBy(val as any)}
               options={[
                 { value: "name", label: "Tên sản phẩm" },
                 { value: "sku", label: "Mã SKU" },
@@ -317,7 +354,9 @@ export default function ProductInventoryPage() {
                 </div>
                 <div className="text-right">
                   <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em] block mb-1">
-                    Tồn kho
+                    {selectedShopId || user?.role !== "ADMIN"
+                      ? "Tồn kho"
+                      : "Tổng tồn"}
                   </span>
                   <span className="text-xl font-black text-slate-900">
                     {variant.quantity}
@@ -383,8 +422,16 @@ export default function ProductInventoryPage() {
                         input.value = "";
                       }
                     }}
-                    disabled={updating === variant.id}
-                    className="p-3.5 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all shadow-lg shadow-slate-200 disabled:opacity-50 active:scale-95 flex items-center justify-center"
+                    disabled={
+                      updating === variant.id ||
+                      (user?.role === "ADMIN" && !selectedShopId)
+                    }
+                    className={cn(
+                      "p-3.5 rounded-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center",
+                      user?.role === "ADMIN" && !selectedShopId
+                        ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                        : "bg-slate-900 text-white hover:bg-black shadow-slate-200",
+                    )}
                   >
                     {updating === variant.id ? (
                       <Loader2 className="w-5 h-5 animate-spin" />

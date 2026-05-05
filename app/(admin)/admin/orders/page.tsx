@@ -26,6 +26,8 @@ import { cn } from "@/utils/cn";
 import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import { Select } from "@/components/ui/Select";
+import { ShopSelect } from "@/components/ui/ShopSelect";
+import { shopApi } from "@/apis/shop.api";
 import {
   NEXT_STATUS,
   NEXT_STATUS_LABEL,
@@ -49,12 +51,20 @@ export default function OrdersManagementPage() {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [updating, setUpdating] = useState<string | null>(null);
 
   const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      shopApi.getShops().then((data) => setShops(data));
+    }
+  }, [user]);
 
   const fetchOrders = async () => {
     if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
@@ -75,6 +85,7 @@ export default function OrdersManagementPage() {
         status: statusFilter,
         paymentStatus: paymentStatusFilter,
         paymentMethod: paymentMethodFilter,
+        shopId: selectedShopId || undefined,
         fromDate,
         toDate,
         page,
@@ -100,6 +111,7 @@ export default function OrdersManagementPage() {
     statusFilter,
     paymentStatusFilter,
     paymentMethodFilter,
+    selectedShopId,
     fromDate,
     toDate,
     page,
@@ -222,7 +234,26 @@ export default function OrdersManagementPage() {
             placeholder="Phương thức"
           />
 
-          <div className="md:col-span-2 grid grid-cols-2 gap-4">
+          {/* Shop Select for ADMIN */}
+          {user?.role === "ADMIN" && (
+            <div className="md:col-span-2 lg:col-span-1">
+              <ShopSelect
+                value={selectedShopId}
+                onChange={(id) => {
+                  setSelectedShopId(id);
+                  setPage(1);
+                }}
+                shops={shops}
+              />
+            </div>
+          )}
+
+          <div
+            className={cn(
+              "md:col-span-2 grid grid-cols-2 gap-4",
+              user?.role === "ADMIN" ? "lg:col-span-1" : "lg:col-span-2",
+            )}
+          >
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">
                 Từ
@@ -251,6 +282,7 @@ export default function OrdersManagementPage() {
             statusFilter ||
             paymentStatusFilter ||
             paymentMethodFilter ||
+            selectedShopId ||
             fromDate ||
             toDate) && (
             <button
@@ -259,6 +291,7 @@ export default function OrdersManagementPage() {
                 setStatusFilter("");
                 setPaymentStatusFilter("");
                 setPaymentMethodFilter("");
+                setSelectedShopId("");
                 setFromDate("");
                 setToDate("");
                 setPage(1);

@@ -24,6 +24,8 @@ import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
+import { ShopSelect } from "@/components/ui/ShopSelect";
+import { shopApi } from "@/apis/shop.api";
 
 export default function InventoryPage() {
   const [data, setData] = useState<any[]>([]);
@@ -33,6 +35,8 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState("");
 
   // Pagination states
   const [page, setPage] = useState(1);
@@ -42,6 +46,12 @@ export default function InventoryPage() {
 
   const user = useAuthStore((state) => state.user);
 
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      shopApi.getShops().then((res) => setShops(res));
+    }
+  }, [user]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -50,6 +60,7 @@ export default function InventoryPage() {
           search: searchTerm,
           categoryId: selectedCategory,
           sort: sortBy,
+          shopId: selectedShopId || undefined,
           page,
           limit,
         }),
@@ -76,12 +87,12 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory, sortBy, page]);
+  }, [selectedCategory, sortBy, selectedShopId, page, limit]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedCategory, sortBy, searchTerm]);
+  }, [selectedCategory, sortBy, searchTerm, selectedShopId]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +104,7 @@ export default function InventoryPage() {
     setSearchTerm("");
     setSelectedCategory("");
     setSortBy("createdAt_desc");
+    setSelectedShopId("");
     setPage(1);
   };
 
@@ -111,7 +123,10 @@ export default function InventoryPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight">
             <Warehouse className="w-6 h-6 text-slate-900" />
-            Bảng tồn kho chi nhánh - {user?.shop?.name}
+            Bảng tồn kho -{" "}
+            {user?.role === "ADMIN"
+              ? shops.find((s) => s.id === selectedShopId)?.name || "Toàn hệ thống"
+              : user?.shop?.name}
           </h1>
           <p className="text-sm text-slate-500 font-medium">
             Theo dõi và quản lý số lượng tồn kho của tất cả sản phẩm.
@@ -128,8 +143,20 @@ export default function InventoryPage() {
             Làm mới
           </button>
           <Link
-            href="/admin/inventory/import"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-black transition-all text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95"
+            href={
+              user?.role === "ADMIN" && selectedShopId
+                ? `/admin/inventory/import?shopId=${selectedShopId}`
+                : "/admin/inventory/import"
+            }
+            className={cn(
+              "inline-flex items-center gap-2 px-4 py-2 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95",
+              user?.role === "ADMIN" && !selectedShopId
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none shadow-none"
+                : "bg-slate-900 text-white hover:bg-black",
+            )}
+            onClick={(e) => {
+              if (user?.role === "ADMIN" && !selectedShopId) e.preventDefault();
+            }}
           >
             <Warehouse className="w-3.5 h-3.5" />
             Nhập kho nhanh
@@ -185,6 +212,20 @@ export default function InventoryPage() {
               ]}
             />
           </div>
+
+          {/* Shop Select for ADMIN */}
+          {user?.role === "ADMIN" && (
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Chi nhánh
+              </label>
+              <ShopSelect
+                value={selectedShopId}
+                onChange={(id) => setSelectedShopId(id)}
+                shops={shops}
+              />
+            </div>
+          )}
 
           {/* Reset Button */}
           <div className="md:col-span-1 flex justify-end">
@@ -258,22 +299,30 @@ export default function InventoryPage() {
                   </div>
 
                   <div className="flex items-center gap-6">
-                    <div className="hidden md:block text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">
-                        Tổng tồn kho
+                    <div className="hidden lg:block text-right">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                        {selectedShopId || user?.role !== "ADMIN" ? "Tại chi nhánh" : "Tổng tồn kho"}
                       </p>
-                      <p className="text-sm font-black text-slate-900">
+                      <p className="text-base font-black text-slate-900">
                         {product.variants.reduce(
-                          (acc: number, v: any) => acc + v.quantity,
+                          (acc: number, v: any) => acc + (v.quantity || 0),
                           0,
                         )}
                       </p>
                     </div>
 
                     <Link
-                      href={`/admin/inventory/import/${product.slug}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-black transition-all text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-2"
+                      href={`/admin/inventory/import/${product.slug}${selectedShopId ? `?shopId=${selectedShopId}` : ""}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (user?.role === "ADMIN" && !selectedShopId) e.preventDefault();
+                      }}
+                      className={cn(
+                        "px-4 py-2 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-2",
+                        user?.role === "ADMIN" && !selectedShopId
+                          ? "bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none"
+                          : "bg-slate-900 text-white hover:bg-black",
+                      )}
                     >
                       Quản lý <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
@@ -297,7 +346,9 @@ export default function InventoryPage() {
                           </th>
                           <th className="py-4 text-center">Mã SKU</th>
                           <th className="py-4 text-center">Đang đặt hàng</th>
-                          <th className="py-4 text-right">Số lượng tồn kho</th>
+                          <th className="py-4 text-right">
+                            {selectedShopId || user?.role !== "ADMIN" ? "Số lượng tồn kho" : "Tổng tồn kho"}
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">

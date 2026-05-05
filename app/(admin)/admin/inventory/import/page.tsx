@@ -2,7 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { inventoryApi } from "@/apis/inventory.api";
+import { useAuthStore } from "@/stores/auth.store";
+import { ShopSelect } from "@/components/ui/ShopSelect";
+import { shopApi } from "@/apis/shop.api";
 import { Select } from "@/components/ui/Select";
 import { toast } from "react-toastify";
 import {
@@ -27,6 +31,23 @@ export default function InventoryImportPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
+  const user = useAuthStore((state) => state.user);
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState(
+    searchParams.get("shopId") || "",
+  );
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      shopApi.getShops().then((res) => setShops(res));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const sId = searchParams.get("shopId");
+    if (sId) setSelectedShopId(sId);
+  }, [searchParams]);
 
   const performSearch = async (term: string) => {
     if (!term) {
@@ -39,6 +60,7 @@ export default function InventoryImportPage() {
         search: term,
         limit: 20,
         sort: sortBy,
+        shopId: selectedShopId || undefined,
       });
       setResults(res.data);
     } catch (error) {
@@ -78,6 +100,7 @@ export default function InventoryImportPage() {
         productId,
         variantId,
         quantity: newQty,
+        shopId: selectedShopId || undefined,
       });
       toast.success(`Đã nhập thêm ${addAmount} sản phẩm`);
 
@@ -109,7 +132,10 @@ export default function InventoryImportPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Plus className="w-6 h-6 text-emerald-500" />
-            Nhập kho nhanh
+            Nhập kho nhanh -{" "}
+            {user?.role === "ADMIN"
+              ? shops.find((s) => s.id === selectedShopId)?.name || "Chọn chi nhánh"
+              : user?.shop?.name}
           </h1>
           <p className="text-sm text-slate-500 font-medium">
             Tìm kiếm theo mã SKU hoặc tên sản phẩm để nhập hàng vào kho chi
@@ -120,6 +146,15 @@ export default function InventoryImportPage() {
           <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100">
             Chế độ nhập hàng
           </div>
+          {user?.role === "ADMIN" && (
+            <div className="w-64">
+              <ShopSelect
+                value={selectedShopId}
+                onChange={(id) => setSelectedShopId(id)}
+                shops={shops}
+              />
+            </div>
+          )}
         </div>
       </div>
 

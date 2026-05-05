@@ -7,13 +7,14 @@ export const inventoryApi = {
     page?: number;
     limit?: number;
     sort?: string;
+    shopId?: string;
   }) => {
     const res = await api.get("/inventory", { params });
     return res.data;
   },
 
-  getProductInventory: async (slug: string) => {
-    const res = await api.get(`/inventory/${slug}`);
+  getProductInventory: async (slug: string, shopId?: string) => {
+    const res = await api.get(`/inventory/${slug}`, { params: { shopId } });
     return res.data;
   },
 
@@ -21,6 +22,7 @@ export const inventoryApi = {
     productId: string;
     variantId: string;
     quantity: number;
+    shopId?: string;
   }) => {
     const res = await api.post("/inventory", data);
     return res.data;
