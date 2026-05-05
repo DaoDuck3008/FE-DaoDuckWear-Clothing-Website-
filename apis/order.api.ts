@@ -10,4 +10,16 @@ export const orderApi = {
   getOrder: (id: string) => {
     return api.get(`/orders/${id}`);
   },
+  getAdminOrders: (params: any) => {
+    return api.get("/orders/admin", { params });
+  },
+  getAdminOrderDetail: (id: string) => {
+    return api.get(`/orders/admin/${id}`);
+  },
+  getAdminOrderByCode: (orderCode: string) => {
+    return api.get(`/orders/admin/code/${orderCode}`);
+  },
+  updateOrderStatus: (id: string, status: string) => {
+    return api.patch(`/orders/${id}/status`, { status });
+  },
 };
