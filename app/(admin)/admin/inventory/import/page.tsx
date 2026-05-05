@@ -308,9 +308,9 @@ export default function InventoryImportPage() {
                           }}
                         />
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
                             const input = (
-                              event?.target as HTMLElement
+                              e.currentTarget as HTMLElement
                             ).parentElement?.querySelector(
                               "input",
                             ) as HTMLInputElement;
