@@ -7,6 +7,7 @@ import { LogOut, User, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { logout } from "@/apis/auth.api";
 import { toast } from "react-toastify";
+import { ROLE_MAP, RoleKey } from "@/constants/role";
 
 export default function AdminHeader() {
   const router = useRouter();
@@ -69,13 +70,18 @@ export default function AdminHeader() {
               >
                 <div className="hidden md:flex flex-col items-end leading-none">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black">
-                    {user.username}
+                    <span className="text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1  rounded uppercase tracking-tighter">
+                      {ROLE_MAP[user.role as RoleKey] || user.role}
+                    </span>{" "}
+                    - {user.username}
                   </span>
-                  {user.shop && (
-                    <span className="text-[8px] font-medium text-stone-500 uppercase tracking-widest mt-0.5">
-                      {user.shop.name}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {user.shop && (
+                      <span className="text-[8px] font-medium text-stone-500 uppercase tracking-widest">
+                        {user.shop.name}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {user.avatar ? (
                   <img
@@ -97,7 +103,7 @@ export default function AdminHeader() {
                 <div className="absolute right-0 mt-3 w-48 bg-white border border-stone-100 shadow-xl z-50 py-2">
                   <div className="px-4 py-2 border-b border-stone-100 mb-1">
                     <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">
-                      Quản trị viên
+                      {ROLE_MAP[user.role as RoleKey] || "Thành viên"}
                     </p>
                     <p className="text-xs font-bold truncate text-black uppercase tracking-tight">
                       {user.username}
