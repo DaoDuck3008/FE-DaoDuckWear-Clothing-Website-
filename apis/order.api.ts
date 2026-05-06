@@ -4,8 +4,8 @@ export const orderApi = {
   createOrder: (data: any) => {
     return api.post("/orders", data);
   },
-  getMyOrders: () => {
-    return api.get("/orders/my-orders");
+  getMyOrders: (params?: any) => {
+    return api.get("/orders/my-orders", { params });
   },
   getOrder: (id: string) => {
     return api.get(`/orders/${id}`);
@@ -21,5 +21,8 @@ export const orderApi = {
   },
   updateOrderStatus: (id: string, status: string) => {
     return api.patch(`/orders/${id}/status`, { status });
+  },
+  cancelMyOrder: (id: string) => {
+    return api.patch(`/orders/my-orders/${id}/cancel`);
   },
 };

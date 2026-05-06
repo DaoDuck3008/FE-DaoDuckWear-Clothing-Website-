@@ -7,37 +7,21 @@ import { toast } from "react-toastify";
 import {
   Search,
   ShoppingBag,
-  Filter,
-  ChevronRight,
   Loader2,
-  Calendar,
-  User,
-  Package,
-  Truck,
-  CheckCircle2,
-  XCircle,
-  Eye,
   RefreshCcw,
-  CreditCard,
-  Store,
-  MapPin,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { OrderCard } from "@/components/order/OrderCard";
 import { cn } from "@/utils/cn";
-import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import { Select } from "@/components/ui/Select";
 import { ShopSelect } from "@/components/ui/ShopSelect";
 import { shopApi } from "@/apis/shop.api";
 import {
-  NEXT_STATUS,
-  NEXT_STATUS_LABEL,
-  STATUS_COLORS,
   STATUS_LABELS,
   STATUS_OPTIONS,
-  PAYMENT_METHOD_LABELS,
   PAYMENT_METHOD_OPTIONS,
-  PAYMENT_STATUS_COLORS,
-  PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_OPTIONS,
 } from "@/constants/order";
 import { useAuthStore } from "@/stores/auth.store";
@@ -54,6 +38,7 @@ export default function OrdersManagementPage() {
   const [shops, setShops] = useState<any[]>([]);
   const [selectedShopId, setSelectedShopId] = useState("");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -89,7 +74,7 @@ export default function OrdersManagementPage() {
         fromDate,
         toDate,
         page,
-        limit: 10,
+        limit,
       });
       setOrders(res.data.data);
       setTotalPages(res.data.totalPages);
@@ -115,6 +100,8 @@ export default function OrdersManagementPage() {
     fromDate,
     toDate,
     page,
+    limit,
+    searchTerm,
   ]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -324,205 +311,92 @@ export default function OrdersManagementPage() {
         ) : (
           <div className="grid gap-4">
             {orders.map((order) => (
-              <Link
+              <OrderCard
                 key={order.id}
-                href={`/admin/orders/${order.orderCode}`}
-                className="bg-white rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-100 transition-all overflow-hidden group block"
-              >
-                <div className="p-6 flex flex-col lg:flex-row lg:items-center gap-6">
-                  {/* Order Info */}
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center justify-between lg:justify-start lg:gap-4">
-                      <span className="text-sm font-black text-slate-900 uppercase tracking-tight">
-                        #{order.orderCode}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                            STATUS_COLORS[order.status],
-                          )}
-                        >
-                          {STATUS_LABELS[order.status]}
-                        </span>
-
-                        {/* Handling Branch Badge */}
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[9px] font-bold text-slate-500 uppercase tracking-tight">
-                          <Store className="w-3 h-3" />
-                          {Array.from(
-                            new Set(
-                              order.items.map((item: any) => item.shopId?.name),
-                            ),
-                          )
-                            .filter(Boolean)
-                            .join(", ") || "N/A"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
-                          <User className="w-4 h-4 text-slate-400" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                            Khách hàng
-                          </span>
-                          <span className="text-xs font-bold text-slate-700 truncate">
-                            {order.shippingAddress.fullName}
-                          </span>
-                          <span className="text-[9px] font-medium text-slate-400">
-                            {order.shippingAddress.phone}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
-                          <CreditCard className="w-4 h-4 text-slate-400" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                            Thanh toán
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-700">
-                            {PAYMENT_METHOD_LABELS[order.paymentMethod] ||
-                              order.paymentMethod}
-                          </span>
-                          <span
-                            className={cn(
-                              "text-[8px] font-black uppercase mt-0.5",
-                              PAYMENT_STATUS_LABELS[order.paymentStatus] ===
-                                "Đã thanh toán"
-                                ? "text-emerald-500"
-                                : "text-rose-500",
-                            )}
-                          >
-                            {PAYMENT_STATUS_LABELS[order.paymentStatus]}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                            Ngày đặt
-                          </span>
-                          <span className="text-xs font-bold text-slate-700">
-                            {new Date(order.createdAt).toLocaleDateString(
-                              "vi-VN",
-                            )}
-                          </span>
-                          <span className="text-[9px] text-slate-400">
-                            {new Date(order.createdAt).toLocaleTimeString(
-                              "vi-VN",
-                              { hour: "2-digit", minute: "2-digit" },
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
-                          <Package className="w-4 h-4 text-slate-400" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                            Tổng tiền
-                          </span>
-                          <span className="text-xs font-black text-slate-900">
-                            {formatPrice(order.finalTotal)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Order Items Preview */}
-                  <div className="flex -space-x-3 items-center overflow-hidden py-1">
-                    {order.items.slice(0, 4).map((item: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="w-12 h-12 rounded-xl border-2 border-white bg-slate-100 overflow-hidden shadow-sm relative"
-                      >
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                        {idx === 3 && order.items.length > 4 && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[10px] font-black text-white">
-                            +{order.items.length - 3}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 border-t lg:border-t-0 lg:border-l border-slate-50 pt-4 lg:pt-0 lg:pl-6">
-                    {/* Next Status Action */}
-                    {NEXT_STATUS[order.status] && (
-                      <button
-                        onClick={() =>
-                          updateStatus(order.id, NEXT_STATUS[order.status]!)
-                        }
-                        disabled={!!updating}
-                        className="flex-1 lg:flex-none px-6 py-3 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all font-black uppercase text-[10px] tracking-widest shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50"
-                      >
-                        {updating === order.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          NEXT_STATUS_LABEL[NEXT_STATUS[order.status]!]
-                        )}
-                      </button>
-                    )}
-
-                    {/* View Detail */}
-                    {/* <button className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95">
-                      <Eye className="w-5 h-5" />
-                    </button> */}
-
-                    {/* Cancel Action */}
-                    {["PENDING", "CONFIRMED"].includes(order.status) && (
-                      <button
-                        onClick={() => cancelOrder(order.id)}
-                        disabled={!!updating}
-                        className="p-3 bg-rose-50 text-rose-400 rounded-2xl hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95 disabled:opacity-50"
-                        title="Hủy đơn"
-                      >
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Link>
+                order={order}
+                variant="admin"
+                onUpdateStatus={updateStatus}
+                onCancel={cancelOrder}
+                updatingId={updating}
+              />
             ))}
           </div>
         )}
       </div>
 
       {/* Pagination */}
-      {!loading && orders && orders.length > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-6">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      {!loading && orders && orders.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm mt-8 gap-6">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] order-2 md:order-1">
+            Hiển thị{" "}
+            <span className="text-slate-900">
+              {(page - 1) * limit + 1} - {Math.min(page * limit, totalItems)}
+            </span>{" "}
+            trên tổng số <span className="text-slate-900">{totalItems}</span>{" "}
+            đơn hàng
+          </div>
+
+          <div className="flex items-center gap-2 order-1 md:order-2">
             <button
-              key={p}
-              onClick={() => setPage(p)}
-              className={cn(
-                "w-10 h-10 rounded-xl text-xs font-black transition-all shadow-sm",
-                page === p
-                  ? "bg-slate-900 text-white"
-                  : "bg-white border border-slate-100 text-slate-600 hover:border-black hover:text-black",
-              )}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-400 hover:text-black hover:border-black disabled:opacity-30 disabled:pointer-events-none transition-all"
             >
-              {p}
+              <ChevronLeft className="w-5 h-5" />
             </button>
-          ))}
+
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1,
+                )
+                .map((p, i, arr) => (
+                  <div key={p} className="flex items-center">
+                    {i > 0 && arr[i - 1] !== p - 1 && (
+                      <span className="px-2 text-slate-200">...</span>
+                    )}
+                    <button
+                      onClick={() => setPage(p)}
+                      className={cn(
+                        "w-10 h-10 rounded-xl text-[10px] font-black transition-all",
+                        page === p
+                          ? "bg-slate-900 text-white shadow-lg shadow-slate-200"
+                          : "bg-white text-slate-400 hover:bg-slate-50 border border-slate-50",
+                      )}
+                    >
+                      {p}
+                    </button>
+                  </div>
+                ))}
+            </div>
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-400 hover:text-black hover:border-black disabled:opacity-30 disabled:pointer-events-none transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 order-3">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              Mỗi trang
+            </span>
+            <Select
+              value={limit.toString()}
+              onChange={(val) => {
+                setLimit(Number(val));
+                setPage(1);
+              }}
+              options={[
+                { label: "10", value: "10" },
+                { label: "20", value: "20" },
+                { label: "50", value: "50" },
+              ]}
+              className="w-20"
+            />
+          </div>
         </div>
       )}
     </div>

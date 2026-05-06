@@ -4,6 +4,7 @@ export interface User {
   email?: string;
   avatar?: string;
   role: string;
+  phone?: string;
   shopId?: string;
   shop?: {
     _id: string;
