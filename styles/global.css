@@ -8,11 +8,9 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
-  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
   --font-cormorant: var(--font-cormorant), ui-serif, Georgia, serif;
-  --font-outfit: var(--font-outfit), ui-sans-serif, system-ui;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,7 +23,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  /* Bỏ font-family Arial cứng ở đây để Tailwind can thiệp được */
+  font-family: var(--font-inter);
 }
 
 /* ─────────────────────────────────────────────────────────────
