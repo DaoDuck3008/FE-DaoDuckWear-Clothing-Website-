@@ -17,6 +17,7 @@ import {
   Home,
   ArrowLeft,
   Warehouse,
+  ImagePlay,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -48,6 +49,11 @@ const menuItems = [
     title: "Quản lý danh mục",
     icon: Layers,
     href: "/admin/categories",
+  },
+  {
+    title: "Quản lý Banner",
+    icon: ImagePlay,
+    href: "/admin/banners",
   },
   {
     title: "Quản lý đơn hàng",

@@ -1,4 +1,4 @@
-import AtelierHero from "@/components/home/AtelierHero";
+import DAODUCKWEARHero from "@/components/home/HeroSection";
 import { DAODUCKWEARProductSection } from "@/components/home/AtelierProducts";
 import DAODUCKWEARNewsletter from "@/components/home/AtelierNewsletter";
 
@@ -126,7 +126,7 @@ export default function Home() {
   return (
     <div className="flex flex-col bg-white">
       {/* Hero Section */}
-      <AtelierHero />
+      <DAODUCKWEARHero />
 
       {/* Main Content */}
       <main className="flex flex-col">

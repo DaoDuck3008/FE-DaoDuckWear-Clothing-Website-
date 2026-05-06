@@ -14,6 +14,7 @@ import {
 } from "@/validators/register.validator";
 import { handleApiError } from "@/utils/error.util";
 import GoogleLoginButton from "@/components/auth/googleBtn";
+import AuthImagePanel from "@/components/auth/AuthImagePanel";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function RegisterPage() {
             >
               DAODUCK WEAR
             </Link>
-            <h1 className="font-serif text-3xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
+            <h1 className="font-cormorant text-3xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
               Tạo tài khoản
             </h1>
             <p className="text-stone-400 text-xs uppercase tracking-widest leading-loose">
@@ -280,23 +281,7 @@ export default function RegisterPage() {
 
       {/* Right Panel: Fashion Imagery */}
       <div className="hidden lg:block w-1/2 relative overflow-hidden bg-stone-100">
-        <img
-          src="https://images.unsplash.com/photo-1539106609512-725e34f7123a?q=80&w=1920&auto=format&fit=crop"
-          alt="Editorial Fashion"
-          className="absolute inset-0 w-full h-full object-cover grayscale scale-110"
-        />
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute top-12 right-12 z-10 text-white text-right">
-          <Link
-            href="/"
-            className="font-serif text-3xl font-bold tracking-tighter mb-8 block"
-          >
-            DAODUCK WEAR
-          </Link>
-          <p className="text-[10px] uppercase tracking-[0.4em] font-medium max-w-xs leading-loose ml-auto">
-            Est. 2024 — Contemporary Craftsmanship
-          </p>
-        </div>
+        <AuthImagePanel page="register" />
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import { formatPrice } from "@/utils/format.util";
 import { cn } from "@/utils/cn";
 import { toast } from "react-toastify";
 import { STATUS_DISPLAY } from "@/constants/order";
+import { handleApiError } from "@/utils/error.util";
 
 const STATUS_ICONS = {
   PENDING: Clock,
@@ -40,7 +41,7 @@ export default function OrderDetailPage() {
         const res = await orderApi.getOrder(id as string);
         setOrder(res.data);
       } catch (error) {
-        toast.error("Không thể tải thông tin đơn hàng");
+        handleApiError(error, "Không thể tải đơn hàng");
         router.push("/profile/orders");
       } finally {
         setLoading(false);

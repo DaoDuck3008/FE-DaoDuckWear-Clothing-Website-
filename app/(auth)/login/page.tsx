@@ -14,6 +14,7 @@ import {
 } from "@/validators/login.validator";
 import { handleApiError } from "@/utils/error.util";
 import GoogleLoginButton from "@/components/auth/googleBtn";
+import AuthImagePanel from "@/components/auth/AuthImagePanel";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -71,24 +72,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-white font-sans antialiased">
       {/* Left Panel: Fashion Imagery */}
       <div className="hidden lg:block w-1/2 relative overflow-hidden bg-stone-100">
-        <img
-          src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1920&auto=format&fit=crop"
-          alt="Editorial Fashion"
-          className="absolute inset-0 w-full h-full object-cover grayscale"
-        />
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute bottom-12 left-12 z-10 text-white">
-          <Link
-            href="/"
-            className="font-serif text-3xl font-bold tracking-tighter mb-8 block"
-          >
-            DAODUCK WEAR
-          </Link>
-          <p className="text-[10px] uppercase tracking-[0.4em] font-medium max-w-xs leading-loose">
-            "The Digital DAODUCK WEAR - Where craftsmanship meets contemporary
-            design."
-          </p>
-        </div>
+        <AuthImagePanel page="login" />
       </div>
 
       {/* Right Panel: Form */}
@@ -108,7 +92,7 @@ export default function LoginPage() {
             >
               DAODUCK WEAR
             </Link>
-            <h1 className="font-serif text-4xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
+            <h1 className="font-cormorant text-4xl lg:text-5xl font-bold tracking-tighter uppercase text-black">
               Đăng nhập tài khoản
             </h1>
             <p className="text-stone-400 text-xs uppercase tracking-widest leading-loose">
