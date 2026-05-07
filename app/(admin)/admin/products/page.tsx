@@ -24,6 +24,7 @@ import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import { cn } from "@/utils/cn";
 import { StatusModal } from "@/components/ui/StatusModal";
+import { useAuthStore } from "@/stores/auth.store";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -34,6 +35,8 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortFilter, setSortFilter] = useState("");
   const [statusModal, setStatusModal] = useState<{ open: boolean; product: any | null }>({ open: false, product: null });
+
+  const user = useAuthStore((s) => s.user);
 
   const hasActiveFilter =
     searchTerm || statusFilter || categoryFilter || sortFilter;
@@ -420,7 +423,10 @@ export default function AdminProductsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <button
+                        
+                        {user!.role === "ADMIN" && (
+                          <>
+                          <button
                           onClick={() => setStatusModal({ open: true, product })}
                           className={cn(
                             "p-2 rounded-lg transition-colors",
@@ -450,6 +456,9 @@ export default function AdminProductsPage() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                          </>
+                        )}
+                       
                       </div>
                     </td>
                   </tr>
