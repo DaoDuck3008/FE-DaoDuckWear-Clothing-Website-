@@ -170,6 +170,63 @@ export const useProductEdit = (slugOrId: string) => {
     setVariants((prev) => prev.filter((v) => v.id !== id));
   };
 
+  const addSizeToColor = (color: string, colorHexId?: string) => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        size: "M",
+        color,
+        colorHexId,
+        price: basePrice || "",
+        sku: "",
+      },
+    ]);
+  };
+
+  const updateColorGroup = (
+    oldColor: string,
+    newColor: string,
+    newColorHexId?: string,
+  ) => {
+    setVariants((prev) =>
+      prev.map((v) =>
+        v.color.trim() === oldColor.trim()
+          ? { ...v, color: newColor, colorHexId: newColorHexId !== undefined ? newColorHexId : v.colorHexId }
+          : v,
+      ),
+    );
+    if (oldColor !== newColor) {
+      setExistingColorImages((prev) => {
+        const { [oldColor]: moved, ...rest } = prev;
+        return moved ? { ...rest, [newColor]: moved } : rest;
+      });
+      setNewColorImages((prev) => {
+        const { [oldColor]: moved, ...rest } = prev;
+        return moved ? { ...rest, [newColor]: moved } : rest;
+      });
+    }
+  };
+
+  const removeColorGroup = (color: string) => {
+    setVariants((prev) =>
+      prev.filter((v) => v.color.trim() !== color.trim()),
+    );
+  };
+
+  const addColorGroup = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        size: "M",
+        color: `__NEW_COLOR_${Date.now()}`,
+        price: basePrice || "",
+        sku: "",
+      },
+    ]);
+  };
+
   // --- Existing Image Handlers ---
   const removeExistingMainImage = (id: string) => {
     setExistingMainImages((prev) => prev.filter((img) => img.id !== id));
@@ -259,6 +316,7 @@ export const useProductEdit = (slugOrId: string) => {
             sku: v.sku,
             size: v.size,
             color: v.color,
+            colorHexId: v.colorHexId,
           })),
         ),
       );
@@ -328,7 +386,11 @@ export const useProductEdit = (slugOrId: string) => {
     uniqueColors,
     user,
     addVariant,
+    addColorGroup,
+    addSizeToColor,
+    updateColorGroup,
     removeVariant,
+    removeColorGroup,
     handleSubmit,
   };
 };

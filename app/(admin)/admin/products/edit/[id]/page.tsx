@@ -114,12 +114,18 @@ export default function EditProductPage() {
     colors,
     uniqueColors,
     addVariant,
+    addColorGroup,
+    addSizeToColor,
+    updateColorGroup,
     removeVariant,
+    removeColorGroup,
     handleSubmit,
   } = useProductEdit(id);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [variantToDelete, setVariantToDelete] = useState<string | null>(null);
+  const [colorGroupModalOpen, setColorGroupModalOpen] = useState(false);
+  const [colorGroupToDelete, setColorGroupToDelete] = useState<string | null>(null);
 
   const confirmDeleteVariant = (vId: string) => {
     if (vId.startsWith("new-")) {
@@ -135,6 +141,19 @@ export default function EditProductPage() {
       removeVariant(variantToDelete);
       setDeleteModalOpen(false);
       setVariantToDelete(null);
+    }
+  };
+
+  const confirmDeleteColorGroup = (color: string) => {
+    setColorGroupToDelete(color);
+    setColorGroupModalOpen(true);
+  };
+
+  const handleDeleteColorGroup = () => {
+    if (colorGroupToDelete) {
+      removeColorGroup(colorGroupToDelete);
+      setColorGroupModalOpen(false);
+      setColorGroupToDelete(null);
     }
   };
 
@@ -352,11 +371,11 @@ export default function EditProductPage() {
                         )}
                         <button
                           type="button"
-                          onClick={addVariant}
+                          onClick={addColorGroup}
                           className="flex items-center gap-1.5 bg-slate-900 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95"
                         >
                           <Plus className="w-3 h-3" />
-                          Thêm biến thể
+                          Thêm màu mới
                         </button>
                       </div>
                     }
@@ -369,6 +388,9 @@ export default function EditProductPage() {
                       const colorVariants = variants.filter(
                         (v) => v.color.trim() === color,
                       );
+                      const colorHexId = colorVariants[0]?.colorHexId;
+                      const colorObj = colors.find((c) => c.id === colorHexId);
+                      const isPlaceholder = color.startsWith("__NEW_COLOR_");
 
                       return (
                         <div
@@ -376,51 +398,84 @@ export default function EditProductPage() {
                           className="border border-slate-100 rounded-xl overflow-hidden"
                         >
                           {/* Color Group Header */}
-                          <div className="flex items-center justify-between bg-slate-50 px-4 py-3 border-b border-slate-100">
-                            <div className="flex items-center gap-3">
-                              <div className="w-5 h-5 rounded-full bg-slate-900 border-2 border-white shadow-sm flex-shrink-0" />
-                              <div>
-                                <span className="text-sm font-black uppercase tracking-wide text-slate-900">
-                                  {color}
-                                </span>
-                                <span className="ml-2 text-[10px] text-slate-400 uppercase tracking-widest">
-                                  {colorVariants.length} size
-                                </span>
+                          <div className="flex items-center justify-between bg-slate-50 px-4 py-3 border-b border-slate-100 gap-3">
+                            <div className="flex items-center gap-4 flex-wrap flex-1 min-w-0">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9px] uppercase tracking-widest text-slate-400 font-black">
+                                  Tên màu
+                                </label>
+                                <input
+                                  value={isPlaceholder ? "" : color}
+                                  onChange={(e) =>
+                                    updateColorGroup(color, e.target.value)
+                                  }
+                                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-black uppercase tracking-wider outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all w-36"
+                                  placeholder="VD: Đen nhám"
+                                />
                               </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9px] uppercase tracking-widest text-slate-400 font-black">
+                                  Mã màu chuẩn
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-5 h-5 rounded-full border-2 border-white shadow-sm flex-shrink-0"
+                                    style={{ backgroundColor: colorObj?.hexCode || "#cbd5e1" }}
+                                  />
+                                  <div className="w-44">
+                                    <ColorDropdown
+                                      options={colors}
+                                      value={colorHexId}
+                                      onChange={(c) =>
+                                        updateColorGroup(color, isPlaceholder ? c.name : color, c.id)
+                                      }
+                                      placeholder={isPlaceholder ? "Chọn màu..." : undefined}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-widest flex-shrink-0 self-end pb-2">
+                                {colorVariants.length} size
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => addSizeToColor(color, colorHexId)}
+                                className="flex items-center gap-1 text-[10px] font-black text-slate-500 hover:text-slate-900 uppercase tracking-widest border border-slate-200 hover:border-slate-400 rounded-lg px-2.5 py-1.5 transition-all"
+                              >
+                                <Plus className="w-3 h-3" />
+                                Size
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => confirmDeleteColorGroup(color)}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                                title="Xóa nhóm màu"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
 
                           {/* Variant rows */}
                           <div className="p-4 space-y-3">
-                            <div className="grid grid-cols-[90px_90px_1fr_100px_40px] gap-3 px-1">
-                              {["Màu", "Size", "SKU", "Giá (đ)", ""].map(
-                                (h, i) => (
-                                  <div
-                                    key={i}
-                                    className="text-[9px] font-black uppercase tracking-widest text-slate-400"
-                                  >
-                                    {h}
-                                  </div>
-                                ),
-                              )}
+                            <div className="grid grid-cols-[90px_1fr_100px_40px] gap-3 px-1">
+                              {["Size", "SKU", "Giá (đ)", ""].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="text-[9px] font-black uppercase tracking-widest text-slate-400"
+                                >
+                                  {h}
+                                </div>
+                              ))}
                             </div>
 
                             {colorVariants.map((v) => (
                               <div
                                 key={v.id}
-                                className="grid grid-cols-[90px_90px_1fr_100px_40px] gap-3 items-center group"
+                                className="grid grid-cols-[90px_1fr_100px_40px] gap-3 items-center group"
                               >
-                                <input
-                                  value={v.color}
-                                  onChange={(e) =>
-                                    updateVariant(
-                                      v.id,
-                                      "color",
-                                      e.target.value.toUpperCase(),
-                                    )
-                                  }
-                                  className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-[11px] font-black uppercase outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-                                />
                                 <select
                                   value={v.size}
                                   onChange={(e) =>
@@ -481,7 +536,7 @@ export default function EditProductPage() {
                 </div>
 
                 {/* Color Images Card */}
-                {uniqueColors.length > 0 && (
+                {uniqueColors.filter((c) => !c.startsWith("__NEW_COLOR_")).length > 0 && (
                   <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
                     <SectionHeader
                       icon={Palette}
@@ -490,7 +545,7 @@ export default function EditProductPage() {
                     />
 
                     <div className="space-y-6">
-                      {uniqueColors.map((color) => (
+                      {uniqueColors.filter((c) => !c.startsWith("__NEW_COLOR_")).map((color) => (
                         <div key={color} className="space-y-3">
                           <div className="flex items-center gap-2.5">
                             <div className="w-5 h-5 rounded-full bg-slate-900 flex-shrink-0" />
@@ -546,6 +601,17 @@ export default function EditProductPage() {
           title="Xác nhận xóa biến thể"
           description="Việc xóa biến thể có thể ảnh hưởng tới tồn kho và đơn hàng đang xử lý. Bạn vẫn có thể hoàn tác khi nhấn Hủy thay đổi ở phía trên."
           confirmText="Tôi chắc chắn"
+          cancelText="Để tôi xem lại"
+        />
+
+        <StatusModal
+          isOpen={colorGroupModalOpen}
+          onClose={() => setColorGroupModalOpen(false)}
+          onConfirm={handleDeleteColorGroup}
+          type="warning"
+          title="Xác nhận xóa nhóm màu"
+          description="Toàn bộ biến thể thuộc nhóm màu này sẽ bị xóa. Thao tác có thể ảnh hưởng tới tồn kho và đơn hàng đang xử lý."
+          confirmText="Xóa nhóm màu"
           cancelText="Để tôi xem lại"
         />
       </div>

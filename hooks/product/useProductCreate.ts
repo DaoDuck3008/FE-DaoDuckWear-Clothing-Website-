@@ -246,6 +246,7 @@ export const useProductCreate = () => {
       formData.append("variants", JSON.stringify(variants.map(v => ({
         size: v.size,
         color: v.color,
+        colorHexId: v.colorHexId,
         price: v.price,
         sku: v.sku
       }))));
