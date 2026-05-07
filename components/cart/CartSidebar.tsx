@@ -127,7 +127,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {item.name}
                       </Link>
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id ?? "")}
                         className="text-stone-300 hover:text-red-500 transition-colors shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -141,7 +141,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <div className="flex items-center border border-stone-100 rounded-sm">
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
+                            updateQuantity(item.id ?? "", item.quantity - 1)
                           }
                           className="p-1.5 hover:bg-stone-50 transition-colors"
                         >
@@ -154,7 +154,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
+                            updateQuantity(item.id ?? "", item.quantity + 1)
                           }
                           className="p-1.5 hover:bg-stone-50 transition-colors"
                         >

@@ -37,7 +37,7 @@ export default function CartItem({ item }: CartItemProps) {
             {item.name}
           </Link>
           <button
-            onClick={() => removeItem(item.id)}
+            onClick={() => removeItem(item.id ?? "")}
             className="p-2 text-stone-300 hover:text-red-500 transition-colors"
             title="Xóa sản phẩm"
           >
@@ -70,7 +70,7 @@ export default function CartItem({ item }: CartItemProps) {
         {/* Quantity Selector */}
         <div className="flex items-center border border-stone-200 rounded-sm bg-white overflow-hidden">
           <button
-            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+            onClick={() => updateQuantity(item.id ?? "", item.quantity - 1)}
             className="p-2.5 hover:bg-stone-50 transition-colors"
           >
             <Minus className="w-4 h-4 text-stone-600" />
@@ -79,7 +79,7 @@ export default function CartItem({ item }: CartItemProps) {
             {item.quantity}
           </span>
           <button
-            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+            onClick={() => updateQuantity(item.id ?? "", item.quantity + 1)}
             className="p-2.5 hover:bg-stone-50 transition-colors"
           >
             <Plus className="w-4 h-4 text-stone-600" />

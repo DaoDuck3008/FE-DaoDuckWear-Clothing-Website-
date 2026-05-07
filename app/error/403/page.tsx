@@ -1,9 +1,13 @@
+"use client";
+
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ForbiddenPage() {
+function ForbiddenContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-editorial-background px-6">
       <div className="max-w-md w-full text-center space-y-12">
@@ -40,5 +44,13 @@ export default function ForbiddenPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ForbiddenPage() {
+  return (
+    <Suspense fallback={null}>
+      <ForbiddenContent />
+    </Suspense>
   );
 }
