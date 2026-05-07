@@ -3,16 +3,15 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { Variant } from "@/types/product";
 import { uid, toSlug, generateSKU } from "@/utils/product.util";
+import { SIZES } from "@/constants/product";
 import {
   validateProductForm,
   ProductFormErrors,
 } from "@/validators/product.validator";
 import { productApi } from "@/apis/product.api";
-import { shopApi } from "@/apis/shop.api";
 import { categoryApi } from "@/apis/category.api";
 import { colorApi } from "@/apis/color.api";
 import { CategoryNode } from "@/components/ui/CategorySelect";
-import { Shop } from "@/components/ui/ShopSelect";
 import { ImageItem } from "@/components/ui/ImageDropzone";
 import { handleApiError } from "@/utils/error.util";
 import { useAuthStore } from "@/stores/auth.store";
@@ -77,15 +76,17 @@ export const useProductCreate = () => {
   };
 
   const addVariant = () => {
+    const tempColor = `__NEW_${uid()}`;
     setVariants((prev) => [
       ...prev,
-      {
+      ...SIZES.map((size) => ({
         id: uid(),
-        size: "M",
-        color: "",
+        size,
+        color: tempColor,
         price: "",
         sku: "",
-      },
+        stock: "0",
+      })),
     ]);
   };
 
@@ -151,6 +152,12 @@ export const useProductCreate = () => {
         return v;
       }),
     );
+    if (oldColor !== newColor) {
+      setColorImages((prev) => {
+        const { [oldColor]: moved, ...rest } = prev;
+        return moved ? { ...rest, [newColor]: moved } : rest;
+      });
+    }
   };
 
   const removeVariant = (id: string) =>
@@ -197,6 +204,15 @@ export const useProductCreate = () => {
 
   const removeMainImage = (idx: number) =>
     setMainImages((prev) => prev.filter((_, i) => i !== idx));
+
+  const handleSetMainImage = (idx: number) => {
+    setMainImages((prev) => {
+      const arr = [...prev];
+      const [moved] = arr.splice(idx, 1);
+      arr.unshift(moved);
+      return arr;
+    });
+  };
 
   const generateAutoSKUs = () => {
     if (!name) {
@@ -308,6 +324,7 @@ export const useProductCreate = () => {
     handleSetMainColorImage,
     handleMainImages,
     removeMainImage,
+    handleSetMainImage,
     generateAutoSKUs,
     handleSubmit,
     user,

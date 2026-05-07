@@ -2,16 +2,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { productApi } from "@/apis/product.api";
-import { shopApi } from "@/apis/shop.api";
 import { categoryApi } from "@/apis/category.api";
 import { colorApi } from "@/apis/color.api";
 import { useAuthStore } from "@/stores/auth.store";
 import { handleApiError } from "@/utils/error.util";
 import { ImageItem, ExistingImageItem } from "@/components/ui/ImageDropzone";
 import { CategoryNode } from "@/components/ui/CategorySelect";
-import { Shop } from "@/components/ui/ShopSelect";
 import { Color } from "./useProductCreate";
 import { generateSKU } from "@/utils/product.util";
+import { SIZES } from "@/constants/product";
 
 export interface EditVariant {
   id: string;
@@ -215,15 +214,16 @@ export const useProductEdit = (slugOrId: string) => {
   };
 
   const addColorGroup = () => {
+    const tempColor = `__NEW_COLOR_${Date.now()}`;
     setVariants((prev) => [
       ...prev,
-      {
-        id: `new-${Date.now()}`,
-        size: "M",
-        color: `__NEW_COLOR_${Date.now()}`,
+      ...SIZES.map((size, i) => ({
+        id: `new-${Date.now()}-${i}`,
+        size,
+        color: tempColor,
         price: basePrice || "",
         sku: "",
-      },
+      })),
     ]);
   };
 

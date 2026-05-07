@@ -110,7 +110,6 @@ export default function CreateProductPage() {
     categories,
     colors,
     errors,
-    uniqueColors,
     handleNameChange,
     addVariant,
     addSizeToColor,
@@ -123,6 +122,7 @@ export default function CreateProductPage() {
     handleSetMainColorImage,
     handleMainImages,
     removeMainImage,
+    handleSetMainImage,
     generateAutoSKUs,
     handleSubmit,
   } = useProductCreate();
@@ -268,7 +268,7 @@ export default function CreateProductPage() {
                   </FormField>
 
                   <FormField label="Trạng thái bán">
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-3 gap-1 pt-1">
                       {STATUS_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
@@ -300,8 +300,9 @@ export default function CreateProductPage() {
                     images={mainImages}
                     onAdd={handleMainImages}
                     onRemove={removeMainImage}
+                    onSetMain={handleSetMainImage}
                     maxImages={3}
-                    isMainPanel={false}
+                    isMainPanel={true}
                     note="Upload bảng Size hoặc ảnh quy cách đóng gói chung."
                   />
                 </div>
@@ -380,6 +381,8 @@ export default function CreateProductPage() {
                           (v) => v.color.trim() === color,
                         );
                         const currentColorHexId = colorVariants[0]?.colorHexId;
+                        const isPlaceholder = color.startsWith("__NEW_");
+                        const cImages = colorImages[color] || [];
 
                         return (
                           <div
@@ -394,7 +397,7 @@ export default function CreateProductPage() {
                                     Tên màu
                                   </label>
                                   <input
-                                    value={color}
+                                    value={isPlaceholder ? "" : color}
                                     onChange={(e) =>
                                       updateColorGroup(color, e.target.value)
                                     }
@@ -513,8 +516,24 @@ export default function CreateProductPage() {
                                 className="mt-2 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-black text-slate-400 hover:text-slate-900 transition-colors"
                               >
                                 <Plus className="w-3 h-3" />
-                                Thêm size cho màu {color || "này"}
+                                Thêm size cho màu {isPlaceholder ? "này" : color}
                               </button>
+                            </div>
+
+                            {/* Color Images (inline) */}
+                            <div className="px-4 pb-4 border-t border-slate-100">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 pt-3 mb-3">
+                                Ảnh màu {isPlaceholder ? "này" : color}
+                                <span className="font-normal normal-case tracking-normal text-slate-300 ml-1">({cImages.length} ảnh)</span>
+                              </p>
+                              <MainImageDropzone
+                                images={cImages}
+                                onAdd={(files) => handleColorImages(color, files)}
+                                onRemove={(idx) => removeColorImage(color, idx)}
+                                onSetMain={(idx) => handleSetMainColorImage(color, idx)}
+                                maxImages={8}
+                                note="Ảnh đầu tiên sẽ là ảnh đại diện cho màu này."
+                              />
                             </div>
                           </div>
                         );
@@ -539,52 +558,6 @@ export default function CreateProductPage() {
                     </p>
                   )}
                 </div>
-
-                {/* Color Images Card */}
-                {uniqueColors.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
-                    <SectionHeader
-                      icon={Palette}
-                      title="Album ảnh theo màu"
-                      description="Upload ảnh riêng cho từng phân loại màu sắc"
-                    />
-
-                    <div className="space-y-6">
-                      {uniqueColors.map((color) => {
-                        const cImages = colorImages[color] || [];
-                        return (
-                          <div key={color} className="space-y-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-5 h-5 rounded-full bg-slate-900 flex-shrink-0" />
-                              <span className="text-[11px] font-black uppercase tracking-widest text-slate-700">
-                                Màu: {color}
-                              </span>
-                              <span className="text-[10px] text-slate-400">
-                                ({cImages.length} ảnh)
-                              </span>
-                            </div>
-                            <div className="pl-7">
-                              <MainImageDropzone
-                                images={cImages}
-                                onAdd={(files) =>
-                                  handleColorImages(color, files)
-                                }
-                                onRemove={(idx) =>
-                                  removeColorImage(color, idx)
-                                }
-                                onSetMain={(idx) =>
-                                  handleSetMainColorImage(color, idx)
-                                }
-                                maxImages={8}
-                                note={`Album ảnh cho màu ${color}. Ảnh đầu tiên sẽ là ảnh đại diện.`}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* Mobile save button */}
                 <div className="lg:hidden">

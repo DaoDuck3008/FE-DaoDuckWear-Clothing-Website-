@@ -10,7 +10,6 @@ import {
   Package,
   Type,
   Tag,
-  Palette,
   Image as ImageIcon,
   Save,
   ChevronRight,
@@ -112,7 +111,6 @@ export default function EditProductPage() {
     loadingMessage,
     categories,
     colors,
-    uniqueColors,
     addVariant,
     addColorGroup,
     addSizeToColor,
@@ -292,7 +290,7 @@ export default function EditProductPage() {
                   </FormField>
 
                   <FormField label="Trạng thái bán">
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-3 gap-1 pt-1">
                       {STATUS_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
@@ -521,6 +519,27 @@ export default function EditProductPage() {
                               </div>
                             ))}
                           </div>
+
+                          {/* Color Images (inline) */}
+                          {!isPlaceholder && (
+                            <div className="px-4 pb-4 border-t border-slate-100">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 pt-3 mb-3">
+                                Ảnh màu {color}
+                                <span className="font-normal normal-case tracking-normal text-slate-300 ml-1">
+                                  ({(existingColorImages[color] || []).length + (newColorImages[color] || []).length} ảnh)
+                                </span>
+                              </p>
+                              <EditableImageDropzone
+                                existingImages={existingColorImages[color] || []}
+                                newImages={newColorImages[color] || []}
+                                onAddNew={(files) => addNewColorImages(color, files)}
+                                onRemoveExisting={(imgId) => removeExistingColorImage(color, imgId)}
+                                onRemoveNew={(idx) => removeNewColorImage(color, idx)}
+                                maxImages={8}
+                                note={`Badge xanh = ảnh đã lưu. Ảnh đầu tiên là ảnh đại diện.`}
+                              />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -534,47 +553,6 @@ export default function EditProductPage() {
                     )}
                   </div>
                 </div>
-
-                {/* Color Images Card */}
-                {uniqueColors.filter((c) => !c.startsWith("__NEW_COLOR_")).length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
-                    <SectionHeader
-                      icon={Palette}
-                      title="Album ảnh theo màu"
-                      description="Xóa ảnh cũ hoặc thêm ảnh mới cho từng màu"
-                    />
-
-                    <div className="space-y-6">
-                      {uniqueColors.filter((c) => !c.startsWith("__NEW_COLOR_")).map((color) => (
-                        <div key={color} className="space-y-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-5 h-5 rounded-full bg-slate-900 flex-shrink-0" />
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-700">
-                              Màu: {color}
-                            </span>
-                          </div>
-                          <div className="pl-7">
-                            <EditableImageDropzone
-                              existingImages={existingColorImages[color] || []}
-                              newImages={newColorImages[color] || []}
-                              onAddNew={(files) =>
-                                addNewColorImages(color, files)
-                              }
-                              onRemoveExisting={(imgId) =>
-                                removeExistingColorImage(color, imgId)
-                              }
-                              onRemoveNew={(idx) =>
-                                removeNewColorImage(color, idx)
-                              }
-                              maxImages={8}
-                              note={`Album ảnh cho màu ${color}. Badge xanh = ảnh đã lưu.`}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Mobile save button */}
                 <div className="lg:hidden">

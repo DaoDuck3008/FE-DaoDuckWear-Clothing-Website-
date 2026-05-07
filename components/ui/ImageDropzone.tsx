@@ -50,7 +50,7 @@ export function MainImageDropzone({
         </span>
       </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2  md:grid-cols-3 gap-3">
         {images.map((img, idx) => (
           <div
             key={idx}
