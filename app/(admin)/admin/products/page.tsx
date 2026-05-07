@@ -13,6 +13,8 @@ import {
   RefreshCcw,
   X,
   Tag,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { productApi } from "@/apis/product.api";
 import { categoryApi } from "@/apis/category.api";
@@ -21,6 +23,7 @@ import { toast } from "react-toastify";
 import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import { cn } from "@/utils/cn";
+import { StatusModal } from "@/components/ui/StatusModal";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -30,6 +33,7 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortFilter, setSortFilter] = useState("");
+  const [statusModal, setStatusModal] = useState<{ open: boolean; product: any | null }>({ open: false, product: null });
 
   const hasActiveFilter =
     searchTerm || statusFilter || categoryFilter || sortFilter;
@@ -91,6 +95,19 @@ export default function AdminProductsPage() {
       fetchProducts();
     } catch {
       toast.error("Xóa thất bại");
+    }
+  };
+
+  const handleConfirmToggleStatus = async () => {
+    if (!statusModal.product) return;
+    const newStatus = statusModal.product.status === "active" ? "inactive" : "active";
+    try {
+      await productApi.updateProductStatus(statusModal.product.id, newStatus);
+      toast.success(newStatus === "active" ? "Đã kích hoạt sản phẩm" : "Đã ngừng bán sản phẩm");
+      setStatusModal({ open: false, product: null });
+      fetchProducts();
+    } catch (error) {
+      handleApiError(error, "Cập nhật trạng thái thất bại");
     }
   };
 
@@ -403,6 +420,22 @@ export default function AdminProductsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
+                        <button
+                          onClick={() => setStatusModal({ open: true, product })}
+                          className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            product.status === "active"
+                              ? "text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50"
+                              : "text-slate-300 hover:text-slate-600 hover:bg-slate-100",
+                          )}
+                          title={product.status === "active" ? "Ngừng bán" : "Kích hoạt"}
+                        >
+                          {product.status === "active" ? (
+                            <ToggleRight className="w-4 h-4" />
+                          ) : (
+                            <ToggleLeft className="w-4 h-4" />
+                          )}
+                        </button>
                         <Link
                           href={`/admin/products/edit/${product.slug}`}
                           className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
@@ -426,6 +459,24 @@ export default function AdminProductsPage() {
           </div>
         )}
       </div>
+      <StatusModal
+        isOpen={statusModal.open}
+        onClose={() => setStatusModal({ open: false, product: null })}
+        onConfirm={handleConfirmToggleStatus}
+        type={statusModal.product?.status === "active" ? "warning" : "success"}
+        title={
+          statusModal.product?.status === "active"
+            ? "Ngừng bán sản phẩm?"
+            : "Kích hoạt sản phẩm?"
+        }
+        description={
+          statusModal.product?.status === "active"
+            ? `Sản phẩm "${statusModal.product?.name}" sẽ bị ẩn khỏi cửa hàng và khách hàng không thể đặt hàng.`
+            : `Sản phẩm "${statusModal.product?.name}" sẽ được hiển thị trở lại trên cửa hàng.`
+        }
+        confirmText={statusModal.product?.status === "active" ? "Ngừng bán" : "Kích hoạt"}
+        cancelText="Để tôi xem lại"
+      />
     </div>
   );
 }

@@ -268,7 +268,7 @@ export default function CreateProductPage() {
                   </FormField>
 
                   <FormField label="Trạng thái bán">
-                    <div className="grid grid-cols-3 gap-1 pt-1">
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       {STATUS_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
