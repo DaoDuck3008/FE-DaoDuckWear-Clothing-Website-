@@ -2,74 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import ProductCard from "@/components/products/ProductCard";
 
-interface Product {
+type SliderProduct = {
   id: string;
   name: string;
-  price: string;
-  oldPrice?: string;
-  discount?: string;
-  image: string;
-  isNew?: boolean;
-  outOfStock?: boolean;
-  slug?: string;
-}
+  slug: string;
+  basePrice: number;
+  images: { url: string; isMain: boolean }[];
+  category?: { name: string };
+};
 
-const VISIBLE_LG = 4;
-const VISIBLE_SM = 2;
-const VISIBLE_XS = 1;
+const VISIBLE_LG = 4;   // ≥ 1024px
+const VISIBLE_MD = 3;   // ≥ 768px
+const VISIBLE_SM = 2;   // < 768px
 const INTERVAL_MS = 3000;
 const TRANSITION_MS = 500;
 
-export const ProductSliderCard = ({ product }: { product: Product }) => {
-  const href = product.slug ? `/products/${product.slug}` : "#";
-  return (
-    <Link href={href} className="group/card block px-2 lg:px-3">
-      <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-stone-100">
-        {product.isNew && (
-          <span className="absolute top-4 right-4 bg-orange-500 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 z-10">
-            NEW
-          </span>
-        )}
-        {product.outOfStock && (
-          <span className="absolute top-4 left-4 bg-red-600 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 z-10">
-            Hết hàng
-          </span>
-        )}
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover object-center absolute inset-0 transition-transform duration-700 group-hover/card:scale-105"
-        />
-      </div>
-      <div>
-        <h3 className="font-sans text-sm font-medium mb-1 truncate">
-          {product.name}
-        </h3>
-        <div className="flex gap-2 items-center">
-          <span className="font-sans text-sm font-medium text-black">
-            {product.price}
-          </span>
-          {product.oldPrice && (
-            <span className="font-sans text-xs text-stone-400 line-through">
-              {product.oldPrice}
-            </span>
-          )}
-          {product.discount && (
-            <span className="font-sans text-[10px] bg-black text-white px-1 py-0.5 font-medium">
-              {product.discount}
-            </span>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-};
-
 interface ProductSliderSectionProps {
   title: string;
-  products: Product[];
+  products: SliderProduct[];
   viewAllHref?: string;
 }
 
@@ -82,12 +34,11 @@ export const ProductSliderSection = ({
 
   // Clone VISIBLE_LG items at both ends for seamless infinite loop
   const extended = [
-    ...products.slice(-VISIBLE_LG),   // start clones (for backward wrap)
-    ...products,                        // real items
-    ...products.slice(0, VISIBLE_LG),  // end clones (for forward wrap)
+    ...products.slice(-VISIBLE_LG),  // start clones (backward wrap)
+    ...products,                       // real items
+    ...products.slice(0, VISIBLE_LG), // end clones (forward wrap)
   ];
 
-  // currentIndex starts at VISIBLE_LG so we begin on the first real item
   const [currentIndex, setCurrentIndex] = useState(VISIBLE_LG);
   const [animated, setAnimated] = useState(true);
   const [itemWidth, setItemWidth] = useState(0);
@@ -95,16 +46,15 @@ export const ProductSliderSection = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
-  // Measure item width from DOM based on current viewport
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const w = containerRef.current.offsetWidth;
     const visible =
       window.innerWidth >= 1024
         ? VISIBLE_LG
-        : window.innerWidth >= 640
-          ? VISIBLE_SM
-          : VISIBLE_XS;
+        : window.innerWidth >= 768
+          ? VISIBLE_MD
+          : VISIBLE_SM;
     setItemWidth(w / visible);
   }, []);
 
@@ -114,7 +64,7 @@ export const ProductSliderSection = ({
     return () => window.removeEventListener("resize", measure);
   }, [measure]);
 
-  // Re-enable animation one frame after a silent (no-animation) index reset
+  // Re-enable animation one frame after a silent index reset
   useEffect(() => {
     if (!animated) {
       const id = requestAnimationFrame(() =>
@@ -124,8 +74,6 @@ export const ProductSliderSection = ({
     }
   }, [animated]);
 
-  // After each transition ends, silently jump to the mirror real position if we
-  // landed in the clone zone (keeps the loop seamless)
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== "transform") return;
     if (currentIndex >= VISIBLE_LG + n) {
@@ -154,14 +102,13 @@ export const ProductSliderSection = ({
 
   if (!n) return null;
 
-  // 0-based real index for dot indicator
   const realIndex = ((currentIndex - VISIBLE_LG) % n + n) % n;
 
   return (
-    <section className="max-w-[1920px] mx-auto px-6 lg:px-12 py-8 lg:py-12 mb-12">
+    <section className="max-w-screen mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-16 mb-6 lg:mb-12 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold tracking-tighter uppercase">
+      <div className="flex items-center justify-between mb-6 lg:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tighter uppercase">
           {title}
         </h2>
         <div className="flex gap-2">
@@ -169,7 +116,7 @@ export const ProductSliderSection = ({
             onClick={() => { prev(); startAuto(); }}
             onMouseEnter={stopAuto}
             onMouseLeave={startAuto}
-            className="w-10 h-10 border border-stone-200 rounded-full flex items-center justify-center hover:border-black hover:bg-stone-50 transition-colors"
+            className="w-9 h-9 sm:w-10 sm:h-10 border border-stone-200 rounded-full flex items-center justify-center hover:border-black hover:bg-stone-50 transition-colors"
             aria-label="Previous"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -178,7 +125,7 @@ export const ProductSliderSection = ({
             onClick={() => { next(); startAuto(); }}
             onMouseEnter={stopAuto}
             onMouseLeave={startAuto}
-            className="w-10 h-10 border border-stone-200 rounded-full flex items-center justify-center hover:border-black hover:bg-stone-50 transition-colors"
+            className="w-9 h-9 sm:w-10 sm:h-10 border border-stone-200 rounded-full flex items-center justify-center hover:border-black hover:bg-stone-50 transition-colors"
             aria-label="Next"
           >
             <ChevronRight className="w-4 h-4" />
@@ -210,16 +157,16 @@ export const ProductSliderSection = ({
             <div
               key={`${product.id}-${i}`}
               style={itemWidth ? { width: `${itemWidth}px`, flexShrink: 0 } : undefined}
-              className={itemWidth ? "" : "w-full sm:w-1/2 lg:w-1/4 flex-shrink-0"}
+              className={`${itemWidth ? "" : "w-1/2 md:w-1/3 lg:w-1/4 flex-shrink-0"} px-1.5 sm:px-2 lg:px-3`}
             >
-              <ProductSliderCard product={product} />
+              <ProductCard product={product} />
             </div>
           ))}
         </div>
       </div>
 
       {/* Dot indicators */}
-      <div className="flex justify-center gap-1.5 mt-8">
+      <div className="flex justify-center gap-2 mt-6">
         {products.map((_, i) => (
           <button
             key={i}
@@ -228,8 +175,8 @@ export const ProductSliderSection = ({
               setCurrentIndex(VISIBLE_LG + i);
               startAuto();
             }}
-            className={`w-1.5 h-1.5 rounded-full transition-colors ${
-              realIndex === i ? "bg-black" : "bg-stone-300"
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              realIndex === i ? "w-6 bg-black" : "w-1.5 bg-stone-300"
             }`}
             aria-label={`Slide ${i + 1}`}
           />
@@ -237,7 +184,7 @@ export const ProductSliderSection = ({
       </div>
 
       {/* View all */}
-      <div className="mt-8 border-b border-stone-200 pb-12">
+      <div className="mt-6 sm:mt-8 border-b border-stone-200 pb-8 sm:pb-12">
         <a
           href={viewAllHref}
           className="inline-block border border-stone-300 px-6 py-2 text-[11px] font-medium uppercase tracking-widest hover:border-black transition-colors"
