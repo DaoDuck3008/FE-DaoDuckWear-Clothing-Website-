@@ -14,10 +14,13 @@ import {
   Clock,
   XCircle,
   Loader2,
+  ShoppingBag,
+  PackageCheck,
+  PackageX,
 } from "lucide-react";
+import { Fragment } from "react";
 import { formatPrice } from "@/utils/format.util";
 import { cn } from "@/utils/cn";
-import { toast } from "react-toastify";
 import { STATUS_DISPLAY } from "@/constants/order";
 import { handleApiError } from "@/utils/error.util";
 
@@ -28,6 +31,19 @@ const STATUS_ICONS = {
   COMPLETED: CheckCircle2,
   CANCELLED: XCircle,
 };
+
+const TIMELINE_STEPS = [
+  { key: "PENDING", label: "Đặt hàng", Icon: ShoppingBag },
+  { key: "CONFIRMED", label: "Xác nhận", Icon: PackageCheck },
+  { key: "SHIPPING", label: "Đang giao", Icon: Truck },
+  { key: "COMPLETED", label: "Hoàn thành", Icon: CheckCircle2 },
+];
+
+const STEP_ORDER = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED"];
+
+function getStepIndex(status: string) {
+  return STEP_ORDER.indexOf(status);
+}
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -69,7 +85,7 @@ export default function OrderDetailPage() {
     STATUS_ICONS[order.status as keyof typeof STATUS_ICONS] || Clock;
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+    <div className="w-full">
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -165,42 +181,116 @@ export default function OrderDetailPage() {
               </div>
             </div>
 
-            {/* Timeline Placeholder */}
+            {/* Horizontal Timeline */}
             <div className="bg-white border border-stone-100 rounded-[32px] p-8">
-              <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+              <h3 className="text-sm font-black uppercase tracking-widest mb-8 flex items-center gap-2">
                 <Calendar className="w-4 h-4" /> Lịch sử đơn hàng
               </h3>
-              <div className="space-y-6">
-                <div className="flex gap-4 relative">
-                  <div className="absolute top-8 left-[11px] bottom-0 w-0.5 bg-stone-100" />
-                  <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center relative z-10">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-black uppercase tracking-tight">
-                      Đặt hàng thành công
+
+              {order.status === "CANCELLED" ? (
+                /* Cancelled — 2-step row */
+                <div className="flex items-start">
+                  {/* Step 1: Đặt hàng (done) */}
+                  <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                    <div className="w-11 h-11 rounded-full bg-black flex items-center justify-center shadow-md">
+                      <ShoppingBag className="w-5 h-5 text-white" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-black text-center">
+                      Đặt hàng
                     </p>
-                    <p className="text-[10px] text-stone-400 font-bold mt-1 uppercase">
-                      {new Date(order.createdAt).toLocaleString("vi-VN")}
+                    <p className="text-[9px] text-stone-400 font-bold text-center leading-tight">
+                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                    </p>
+                  </div>
+
+                  {/* Connector */}
+                  <div className="flex-1 h-0.5 mt-[22px] bg-rose-200 mx-2" />
+
+                  {/* Step 2: Đã hủy */}
+                  <div className="flex flex-col items-center gap-2 min-w-[80px]">
+                    <div className="w-11 h-11 rounded-full bg-rose-500 flex items-center justify-center shadow-md">
+                      <PackageX className="w-5 h-5 text-white" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 text-center">
+                      Đã hủy
+                    </p>
+                    <p className="text-[9px] text-stone-400 font-bold text-center leading-tight">
+                      Đơn hàng bị hủy
                     </p>
                   </div>
                 </div>
-                {order.status !== "PENDING" && (
-                  <div className="flex gap-4">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-black uppercase tracking-tight">
-                        Đơn hàng đã được xác nhận
-                      </p>
-                      <p className="text-[10px] text-stone-400 font-bold mt-1 uppercase">
-                        Hệ thống đã xác nhận đơn hàng
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+              ) : (
+                /* Normal flow — 4-step row */
+                <div className="flex items-start">
+                  {TIMELINE_STEPS.map((step, idx) => {
+                    const currentIdx = getStepIndex(order.status);
+                    const isDone = idx < currentIdx;
+                    const isCurrent = idx === currentIdx;
+                    const isFuture = idx > currentIdx;
+                    const { Icon } = step;
+
+                    return (
+                      <Fragment key={step.key}>
+                        <div className="flex flex-col items-center gap-2 min-w-[72px] sm:min-w-[80px]">
+                          <div
+                            className={cn(
+                              "w-11 h-11 rounded-full flex items-center justify-center transition-all",
+                              isDone && "bg-black shadow-md",
+                              isCurrent &&
+                                "bg-black shadow-lg ring-[3px] ring-offset-2 ring-stone-300",
+                              isFuture && "bg-stone-100",
+                            )}
+                          >
+                            <Icon
+                              className={cn(
+                                "w-5 h-5",
+                                isDone || isCurrent
+                                  ? "text-white"
+                                  : "text-stone-300",
+                              )}
+                            />
+                          </div>
+                          <p
+                            className={cn(
+                              "text-[10px] font-black uppercase tracking-widest text-center",
+                              isFuture ? "text-stone-300" : "text-black",
+                            )}
+                          >
+                            {step.label}
+                          </p>
+                          {isCurrent && (
+                            <span className="text-[8px] font-black uppercase tracking-wider text-stone-400 text-center leading-tight">
+                              Hiện tại
+                            </span>
+                          )}
+                          {isDone && (
+                            <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-wider">
+                              Hoàn tất
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Connector (not after last step) */}
+                        {idx < TIMELINE_STEPS.length - 1 && (
+                          <div
+                            className={cn(
+                              "flex-1 h-0.5 mt-[22px] mx-1 rounded-full transition-colors",
+                              idx < currentIdx ? "bg-black" : "bg-stone-100",
+                            )}
+                          />
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              )}
+
+              <p className="mt-6 text-[10px] text-stone-400 font-bold uppercase tracking-widest">
+                Đặt lúc:{" "}
+                <span className="text-stone-600">
+                  {new Date(order.createdAt).toLocaleString("vi-VN")}
+                </span>
+              </p>
             </div>
           </div>
 

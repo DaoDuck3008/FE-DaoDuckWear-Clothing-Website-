@@ -12,150 +12,140 @@ import {
   Home,
   ChevronRight,
   ChevronLeft,
-  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useAuthStore } from "@/stores/auth.store";
+import { logout } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 
 const MENU_ITEMS = [
-  {
-    label: "Tài khoản",
-    href: "/profile",
-    icon: User,
-  },
-  {
-    label: "Đơn hàng",
-    href: "/profile/orders",
-    icon: Package,
-  },
-  {
-    label: "Yêu thích",
-    href: "/profile/favorites",
-    icon: Heart,
-  },
-  {
-    label: "Voucher của tôi",
-    href: "/profile/vouchers",
-    icon: Ticket,
-  },
+  { label: "Tài khoản", href: "/profile", icon: User },
+  { label: "Đơn hàng", href: "/profile/orders", icon: Package },
+  { label: "Yêu thích", href: "/profile/favorites", icon: Heart },
+  { label: "Voucher của tôi", href: "/profile/vouchers", icon: Ticket },
 ];
+
+const ROLE_LABEL: Record<string, string> = {
+  USER: "Thành viên",
+  ADMIN: "Quản trị viên",
+  SELLER: "Người bán",
+};
 
 export function ProfileSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-  const user = useAuthStore((state) => state.user);
+  const { clearAuth, user } = useAuthStore();
 
-  const handleLogout = () => {
-    clearAuth();
-    toast.success("Đăng xuất thành công");
-    router.push("/");
-  };
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    } finally {
+      clearAuth();
+      toast.success("Đăng xuất thành công");
+      router.push("/");
+    }
   };
 
   return (
     <aside
       className={cn(
-        "h-screen flex flex-col bg-white border-r border-stone-100 transition-all duration-300 ease-in-out z-[100]",
-        isCollapsed ? "w-20" : "w-64 lg:w-72",
+        "h-screen flex flex-col bg-white border-r border-stone-100 transition-all duration-300 ease-in-out z-[100] shrink-0",
+        isCollapsed ? "w-[72px]" : "w-64 lg:w-72",
       )}
     >
-      {/* Sidebar Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-stone-50">
-        {!isCollapsed && (
+      {/* Header */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-stone-100 shrink-0">
+        {!isCollapsed ? (
           <Link
             href="/"
-            className="font-cormorant text-2xl font-bold tracking-tighter uppercase italic"
+            className="font-cormorant text-xl font-bold tracking-tighter uppercase italic truncate"
           >
             DAODUCK WEAR
           </Link>
+        ) : (
+          <Link
+            href="/"
+            className="mx-auto font-cormorant text-xl font-bold italic"
+          >
+            D
+          </Link>
         )}
-        <button
-          onClick={toggleSidebar}
-          className={cn(
-            "p-1.5 rounded-full hover:bg-stone-50 transition-colors text-stone-400 hover:text-black",
-            isCollapsed && "mx-auto",
-          )}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
+        {!isCollapsed && (
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-1.5 rounded-full hover:bg-stone-50 transition-colors text-stone-400 hover:text-black shrink-0"
+          >
             <ChevronLeft className="w-4 h-4" />
-          )}
-        </button>
+          </button>
+        )}
       </div>
 
-      {/* Profile Summary */}
+      {/* Profile summary */}
       <div
         className={cn(
-          "p-5 flex items-center gap-3 border-b border-stone-50 bg-stone-50/10 transition-all",
-          isCollapsed && "justify-center px-2",
+          "flex items-center gap-3 border-b border-stone-50 transition-all shrink-0",
+          isCollapsed ? "justify-center py-4 px-2" : "px-5 py-4",
         )}
       >
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-black text-white text-lg font-bold shadow-xl shadow-stone-200 overflow-hidden flex-shrink-0">
+        <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-stone-900 text-white text-base font-black shadow-md overflow-hidden shrink-0">
           {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt="avatar"
-              className="w-full h-full object-cover"
-            />
+            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
           ) : (
             user?.username?.charAt(0).toUpperCase() || "U"
           )}
         </div>
         {!isCollapsed && (
-          <div className="min-w-0">
-            <h3 className="text-sm font-black text-black uppercase tracking-widest truncate">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-black text-black uppercase tracking-widest truncate">
               {user?.username || "Người dùng"}
-            </h3>
-            <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-1">
-              Thành viên
             </p>
+            <span className="inline-block mt-1 px-2 py-0.5 bg-stone-100 text-stone-500 text-[8px] font-black uppercase tracking-widest rounded-full">
+              {ROLE_LABEL[user?.role ?? ""] ?? "Thành viên"}
+            </span>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto no-scrollbar">
+      <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto no-scrollbar">
         {MENU_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== "/profile" && pathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={isCollapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 transition-all group relative",
+                "flex items-center gap-3 px-3 py-3 rounded-2xl transition-all group relative",
                 isActive
-                  ? "bg-black text-white shadow-lg shadow-stone-200"
+                  ? "bg-black text-white shadow-md shadow-stone-200"
                   : "text-stone-400 hover:text-black hover:bg-stone-50",
                 isCollapsed && "justify-center",
               )}
             >
               <Icon
                 className={cn(
-                  "w-5 h-5 flex-shrink-0 transition-transform",
+                  "w-[18px] h-[18px] shrink-0 transition-transform",
                   isActive ? "scale-110" : "group-hover:scale-110",
                 )}
               />
               {!isCollapsed && (
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] truncate flex-1">
-                  {item.label}
-                </span>
-              )}
-              {!isCollapsed && isActive && (
-                <ChevronRight className="w-3 h-3 text-white" />
+                <>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] truncate flex-1">
+                    {item.label}
+                  </span>
+                  {isActive && <ChevronRight className="w-3 h-3 text-white shrink-0" />}
+                </>
               )}
 
-              {/* Tooltip for collapsed mode */}
+              {/* Tooltip when collapsed */}
               {isCollapsed && (
-                <div className="fixed left-20 hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 ml-1">
+                <div className="fixed left-[76px] hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-lg">
                   {item.label}
                 </div>
               )}
@@ -164,28 +154,29 @@ export function ProfileSidebar() {
         })}
       </nav>
 
-      {/* Footer Actions */}
-      <div className="p-4 border-t border-stone-50 space-y-2">
+      {/* Footer */}
+      <div className="p-2.5 border-t border-stone-50 space-y-0.5 shrink-0">
         <Link
           href="/"
+          title={isCollapsed ? "Về trang chủ" : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-3 text-stone-500 hover:text-black transition-all group rounded-2xl hover:bg-stone-50",
             isCollapsed && "justify-center",
           )}
         >
-          <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <Home className="w-[18px] h-[18px] shrink-0 group-hover:scale-110 transition-transform" />
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em]">
                 Về trang chủ
-              </span>
-              <span className="text-[8px] uppercase tracking-widest text-stone-300 font-bold">
+              </p>
+              <p className="text-[8px] uppercase tracking-widest text-stone-300 font-bold mt-0.5">
                 Quay lại cửa hàng
-              </span>
+              </p>
             </div>
           )}
           {isCollapsed && (
-            <div className="fixed left-20 hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 ml-1">
+            <div className="fixed left-[76px] hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-lg">
               Về trang chủ
             </div>
           )}
@@ -193,23 +184,34 @@ export function ProfileSidebar() {
 
         <button
           onClick={handleLogout}
+          title={isCollapsed ? "Đăng xuất" : undefined}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-3 text-rose-500 hover:bg-rose-50 transition-all group rounded-2xl",
             isCollapsed && "justify-center",
           )}
         >
-          <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <LogOut className="w-[18px] h-[18px] shrink-0 group-hover:scale-110 transition-transform" />
           {!isCollapsed && (
-            <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+            <span className="text-[11px] font-black uppercase tracking-[0.18em]">
               Đăng xuất
             </span>
           )}
           {isCollapsed && (
-            <div className="fixed left-20 hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 ml-1">
+            <div className="fixed left-[76px] hidden group-hover:block bg-black text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-lg">
               Đăng xuất
             </div>
           )}
         </button>
+
+        {/* Expand button when collapsed */}
+        {isCollapsed && (
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="w-full flex items-center justify-center py-2 text-stone-300 hover:text-black transition-colors rounded-2xl hover:bg-stone-50"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </aside>
   );
