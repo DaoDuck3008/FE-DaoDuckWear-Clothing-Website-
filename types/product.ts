@@ -1,7 +1,16 @@
 export type CategoryNode = {
   id: string;
   name: string;
+  slug: string;
   children: CategoryNode[];
+};
+
+export type CategoryAdmin = {
+  id: string;
+  name: string;
+  slug: string;
+  parent: { id: string; name: string } | null;
+  createdAt: string;
 };
 
 export type Variant = {
