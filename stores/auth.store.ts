@@ -9,6 +9,7 @@ interface AuthState {
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
   setHydrated: () => void;
+  updateUser: (partial: Partial<User>) => void;
 }
 
 const getInitialSession = () => {
@@ -41,4 +42,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setHydrated: () => set({ hydrated: true }),
+
+  updateUser: (partial: Partial<User>) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...partial } : null,
+    })),
 }));

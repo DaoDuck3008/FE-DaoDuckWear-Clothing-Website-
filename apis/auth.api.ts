@@ -44,3 +44,18 @@ export const getProfile = async () => {
     throw error;
   }
 };
+
+export const updateProfile = async (data: {
+  username?: string;
+  phone?: string;
+}) => {
+  return api.patch("/auth/profile", data);
+};
+
+export const uploadAvatar = async (file: File) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  return api.post("/auth/profile/avatar", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};

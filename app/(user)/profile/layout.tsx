@@ -21,7 +21,7 @@ export default function ProfileLayout({
           <ProfileHeader />
 
           {/* Scrollable Viewport - Full width container */}
-          <main className="flex-1 overflow-y-auto bg-stone-50/50">
+          <main className="flex-1 px-3 overflow-y-auto bg-stone-50/50">
             {children}
           </main>
         </div>

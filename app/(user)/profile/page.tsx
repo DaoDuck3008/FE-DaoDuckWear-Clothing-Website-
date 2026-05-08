@@ -1,85 +1,467 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
-import { User, Mail, Phone, Calendar, ShieldCheck } from "lucide-react";
+import { useCartStore } from "@/stores/cart.store";
+import { updateProfile, uploadAvatar, getProfile } from "@/apis/auth.api";
+import { orderApi } from "@/apis/order.api";
+import { handleApiError } from "@/utils/error.util";
+import { toast } from "react-toastify";
+import ModalPortal from "@/components/ui/modalPortal";
+import UserAvatar from "@/components/ui/UserAvatar";
+import {
+  Camera,
+  Loader2,
+  X,
+  Pencil,
+  ShoppingCart,
+  Clock,
+  PackageCheck,
+  Truck,
+  CheckCircle2,
+  XCircle,
+  Mail,
+  Phone,
+  CalendarDays,
+  ChevronRight,
+} from "lucide-react";
+
+// ─── constants ────────────────────────────────────────────────────────────────
+
+const STATUS_CONFIG = [
+  {
+    key: "PENDING",
+    short: "Chờ xử lý",
+    Icon: Clock,
+    color: "text-amber-500",
+    bg: "bg-amber-50",
+  },
+  {
+    key: "CONFIRMED",
+    short: "Xác nhận",
+    Icon: PackageCheck,
+    color: "text-blue-500",
+    bg: "bg-blue-50",
+  },
+  {
+    key: "SHIPPING",
+    short: "Giao hàng",
+    Icon: Truck,
+    color: "text-violet-500",
+    bg: "bg-violet-50",
+  },
+  {
+    key: "COMPLETED",
+    short: "Hoàn thành",
+    Icon: CheckCircle2,
+    color: "text-emerald-500",
+    bg: "bg-emerald-50",
+  },
+  {
+    key: "CANCELLED",
+    short: "Đã hủy",
+    Icon: XCircle,
+    color: "text-rose-400",
+    bg: "bg-rose-50",
+  },
+];
+
+const ROLE_CONFIG: Record<string, { label: string; cls: string }> = {
+  USER: { label: "Khách hàng", cls: "bg-stone-100 text-stone-600" },
+  ADMIN: { label: "Quản trị viên", cls: "bg-rose-100 text-rose-600" },
+  SELLER: { label: "Người bán", cls: "bg-sky-100 text-sky-600" },
+};
+
+function fmtDate(d?: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+// ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, updateUser } = useAuthStore();
+  const cartCount = useCartStore((state) => state.totalItems());
 
+  const [createdAt, setCreatedAt] = useState<string>();
+  const [orderStats, setOrderStats] = useState<Record<string, number>>({});
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // edit modal state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string;
+    phone?: string;
+  }>({});
+
+  // avatar upload
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── fetch on mount ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    getProfile()
+      .then((res) => setCreatedAt(res.data.createdAt))
+      .catch(() => {});
+
+    Promise.all(
+      STATUS_CONFIG.map((s) =>
+        orderApi
+          .getMyOrders({ status: s.key, limit: 1 })
+          .catch(() => ({ data: { totalItems: 0 } }))
+      )
+    )
+      .then((results) => {
+        const stats: Record<string, number> = {};
+        STATUS_CONFIG.forEach((s, i) => {
+          stats[s.key] = results[i].data?.totalItems ?? 0;
+        });
+        setOrderStats(stats);
+      })
+      .finally(() => setStatsLoading(false));
+  }, []);
+
+  // ── helpers ─────────────────────────────────────────────────────────────────
+  const role =
+    ROLE_CONFIG[user?.role ?? ""] ?? {
+      label: user?.role ?? "Khách hàng",
+      cls: "bg-stone-100 text-stone-600",
+    };
+
+  const openEdit = () => {
+    setUsername(user?.username || "");
+    setPhone(user?.phone || "");
+    setFieldErrors({});
+    setIsEditOpen(true);
+  };
+
+  const validate = () => {
+    const e: typeof fieldErrors = {};
+    if (!username.trim()) e.username = "Tên không được để trống";
+    else if (username.trim().length < 2) e.username = "Tên phải có ít nhất 2 ký tự";
+    if (phone && !/^(0|\+84)[0-9]{8,9}$/.test(phone))
+      e.phone = "Số điện thoại không hợp lệ";
+    return e;
+  };
+
+  const handleSubmit = async () => {
+    const errors = validate();
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await updateProfile({
+        username: username.trim(),
+        phone: phone.trim() || undefined,
+      });
+      updateUser({ username: res.data.username, phone: res.data.phone });
+      toast.success("Cập nhật thành công!");
+      setIsEditOpen(false);
+    } catch (e) {
+      handleApiError(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh tối đa 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Chỉ chấp nhận file ảnh");
+      return;
+    }
+    setIsUploadingAvatar(true);
+    try {
+      const res = await uploadAvatar(file);
+      updateUser({ avatar: res.data.avatar });
+      toast.success("Ảnh đại diện đã được cập nhật!");
+    } catch (e) {
+      handleApiError(e);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // ── render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-black text-black uppercase tracking-tight">
-          Thông tin tài khoản
-        </h2>
-        <p className="text-sm text-stone-400 font-medium mt-1">
-          Quản lý thông tin cá nhân và bảo mật tài khoản của bạn.
-        </p>
+    <div className="w-full space-y-4">
+
+      {/* ╔══ Profile card ═════════════════════════════════════════════════════╗ */}
+      <div className="bg-white rounded-3xl border border-stone-100 shadow-sm">
+        <div className="p-6 sm:p-8">
+
+          {/* Avatar + identity */}
+          <div className="flex items-start gap-5">
+            <div
+              className="relative group cursor-pointer shrink-0"
+              onClick={() => !isUploadingAvatar && fileInputRef.current?.click()}
+            >
+              <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden ring-2 ring-stone-100 group-hover:ring-stone-200 transition-all">
+                {isUploadingAvatar ? (
+                  <div className="w-full h-full bg-stone-100 flex items-center justify-center animate-pulse">
+                    <Loader2 className="w-5 h-5 text-stone-300 animate-spin" />
+                  </div>
+                ) : (
+                  <UserAvatar
+                    avatar={user?.avatar}
+                    username={user?.username}
+                    className="w-full h-full text-xl"
+                  />
+                )}
+              </div>
+              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="w-4 h-4 text-white" />
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            <div className="flex-1 min-w-0 pt-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base font-black text-black uppercase tracking-tight leading-none">
+                  {user?.username || "—"}
+                </h2>
+                <span
+                  className={`px-2.5 py-[3px] rounded-full text-[9px] font-black uppercase tracking-widest ${role.cls}`}
+                >
+                  {role.label}
+                </span>
+              </div>
+              <p className="text-xs text-stone-400 mt-1 truncate">{user?.email || "—"}</p>
+              <p className="text-[9px] text-stone-300 font-bold uppercase tracking-[0.15em] mt-1.5">
+                Nhấn ảnh để thay đổi
+              </p>
+            </div>
+          </div>
+
+          {/* Info strip */}
+          <div className="mt-5 grid grid-cols-3 gap-x-4 gap-y-3 py-4 border-y border-stone-100">
+            <div>
+              <div className="flex items-center gap-1 mb-1">
+                <Mail className="w-3 h-3 text-stone-300" />
+                <span className="text-[9px] font-black text-stone-300 uppercase tracking-widest">
+                  Email
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-stone-700 truncate">
+                {user?.email || "—"}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1 mb-1">
+                <Phone className="w-3 h-3 text-stone-300" />
+                <span className="text-[9px] font-black text-stone-300 uppercase tracking-widest">
+                  Điện thoại
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-stone-700">
+                {user?.phone || (
+                  <span className="text-stone-300 italic font-medium">Chưa có</span>
+                )}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1 mb-1">
+                <CalendarDays className="w-3 h-3 text-stone-300" />
+                <span className="text-[9px] font-black text-stone-300 uppercase tracking-widest">
+                  Tham gia
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-stone-700">{fmtDate(createdAt)}</p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-5 flex items-center gap-3 flex-wrap">
+            <Link
+              href="/cart"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:border-stone-900 hover:text-black transition-all text-[11px] font-black uppercase tracking-[0.12em]"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              Giỏ hàng
+              {cartCount > 0 && (
+                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-black text-white text-[9px] font-black">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            <button
+              onClick={openEdit}
+              className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-xl text-[11px] font-black uppercase tracking-[0.12em] hover:scale-[1.03] active:scale-95 transition-all shadow-sm shadow-stone-200"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Cập nhật thông tin
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 bg-stone-50/50 rounded-3xl border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-stone-400">
-            <User className="w-5 h-5" />
+      {/* ╔══ Order stats card ══════════════════════════════════════════════════╗ */}
+      <div className="bg-white rounded-3xl border border-stone-100 shadow-sm">
+        <div className="px-6 sm:px-8 pt-6 pb-7">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-[10px] font-black text-black uppercase tracking-[0.2em]">
+              Đơn hàng của tôi
+            </h3>
+            <Link
+              href="/profile/orders"
+              className="flex items-center gap-0.5 text-[10px] font-bold text-stone-400 hover:text-black transition-colors uppercase tracking-widest"
+            >
+              Tất cả
+              <ChevronRight className="w-3 h-3" />
+            </Link>
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              Họ và tên
-            </p>
-            <p className="text-sm font-black text-black uppercase tracking-tight mt-0.5">
-              {user?.username || "Chưa cập nhật"}
-            </p>
-          </div>
-        </div>
 
-        <div className="p-6 bg-stone-50/50 rounded-3xl border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-stone-400">
-            <Mail className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              Email
-            </p>
-            <p className="text-sm font-black text-black tracking-tight mt-0.5">
-              {user?.email || "Chưa cập nhật"}
-            </p>
-          </div>
-        </div>
-
-        <div className="p-6 bg-stone-50/50 rounded-3xl border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-stone-400">
-            <Phone className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              Số điện thoại
-            </p>
-            <p className="text-sm font-black text-black tracking-tight mt-0.5">
-              {user?.phone || "Chưa cập nhật"}
-            </p>
-          </div>
-        </div>
-
-        <div className="p-6 bg-stone-50/50 rounded-3xl border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-100 flex items-center justify-center text-stone-400">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              Vai trò
-            </p>
-            <p className="text-sm font-black text-emerald-600 uppercase tracking-tight mt-0.5">
-              {user?.role || "Khách hàng"}
-            </p>
+          <div className="grid grid-cols-5">
+            {STATUS_CONFIG.map(({ key, short, Icon, color, bg }, idx) => (
+              <Link
+                key={key}
+                href={`/profile/orders?status=${key}`}
+                className={`group flex flex-col items-center gap-2.5 py-4 px-1 transition-all hover:bg-stone-50 rounded-2xl ${
+                  idx < STATUS_CONFIG.length - 1
+                    ? "border-r border-stone-100"
+                    : ""
+                }`}
+              >
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center ${bg} group-hover:scale-105 transition-transform`}
+                >
+                  <Icon className={`w-5 h-5 ${color}`} />
+                </div>
+                <span
+                  className={`text-2xl font-black leading-none transition-colors ${
+                    statsLoading ? "text-stone-200 animate-pulse" : "text-stone-900"
+                  }`}
+                >
+                  {statsLoading ? "–" : (orderStats[key] ?? 0)}
+                </span>
+                <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wide text-center leading-tight px-1">
+                  {short}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="pt-4">
-        <button className="px-8 py-4 bg-black text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-stone-200 hover:scale-105 active:scale-95 transition-all">
-          Cập nhật thông tin
-        </button>
-      </div>
+      {/* ╔══ Edit modal ════════════════════════════════════════════════════════╗ */}
+      {isEditOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+              onClick={() => !isSubmitting && setIsEditOpen(false)}
+            />
+            <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl shadow-stone-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div
+                className="h-1.5 w-full"
+                style={{ backgroundColor: "#b91446" }}
+              />
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-black text-black uppercase tracking-tight">
+                    Cập nhật thông tin
+                  </h3>
+                  <button
+                    onClick={() => !isSubmitting && setIsEditOpen(false)}
+                    className="p-2 text-stone-300 hover:text-stone-900 transition-colors rounded-full hover:bg-stone-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-stone-400 uppercase tracking-[0.18em]">
+                    Họ và tên
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setFieldErrors((p) => ({ ...p, username: undefined }));
+                    }}
+                    placeholder="Nhập tên của bạn"
+                    className="w-full bg-transparent border-b border-stone-200 focus:border-black py-3 outline-none text-sm transition-colors"
+                  />
+                  {fieldErrors.username && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                      {fieldErrors.username}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-stone-400 uppercase tracking-[0.18em]">
+                    Số điện thoại
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setFieldErrors((p) => ({ ...p, phone: undefined }));
+                    }}
+                    placeholder="0xxxxxxxxx"
+                    className="w-full bg-transparent border-b border-stone-200 focus:border-black py-3 outline-none text-sm transition-colors"
+                  />
+                  {fieldErrors.phone && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                      {fieldErrors.phone}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setIsEditOpen(false)}
+                    disabled={isSubmitting}
+                    className="flex-1 py-3.5 border border-stone-200 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] text-stone-400 hover:border-stone-300 hover:text-stone-600 transition-all disabled:opacity-50"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="flex-1 py-3.5 bg-black text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      "Lưu thay đổi"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
