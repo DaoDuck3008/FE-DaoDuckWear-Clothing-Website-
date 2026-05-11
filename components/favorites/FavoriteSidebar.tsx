@@ -69,7 +69,7 @@ export default function FavoriteSidebar({
           {/* Header */}
           <div className="p-6 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+              <Heart className="w-5 h-5 text-editorial-accent fill-editorial-accent" />
               <h2 className="text-[11px] font-bold uppercase tracking-[0.2em]">
                 Danh sách yêu thích ({totalItems()})
               </h2>

@@ -337,7 +337,7 @@ export default function ProductDetailPage() {
           {/* RIGHT: Info */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="mb-2 flex items-center gap-4">
-              <div className="flex items-center gap-1 text-amber-400">
+              <div className="flex items-center gap-1 text-editorial-accent">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -353,7 +353,7 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
-            <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-black mb-3 leading-tight uppercase">
+            <h1 className="font-cormorant text-xl lg:text-2xl font-bold tracking-tight text-black mb-3 leading-tight uppercase">
               {product.name}
             </h1>
 
@@ -515,14 +515,14 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   onClick={handleToggleFavorite}
-                  className="flex-1 cursor-pointer border border-stone-200 flex items-center justify-center hover:border-black hover:border-red-500 transition-all group"
+                  className="flex-1 cursor-pointer border border-stone-200 flex items-center justify-center hover:border-editorial-accent transition-all group"
                 >
                   <Heart
                     className={cn(
                       "w-5 h-5 transition-colors",
                       isFavorite(product.id)
-                        ? "text-red-500 fill-red-500"
-                        : "text-stone-400 group-hover:text-red-500",
+                        ? "text-editorial-accent fill-editorial-accent"
+                        : "text-stone-400 group-hover:text-editorial-accent",
                     )}
                   />
                 </button>

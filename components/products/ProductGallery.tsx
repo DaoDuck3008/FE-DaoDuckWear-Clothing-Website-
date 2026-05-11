@@ -152,7 +152,7 @@ export default function ProductGallery({
               className={cn(
                 "backdrop-blur p-2.5 transition-all shadow-sm rounded-full",
                 isFavorite
-                  ? "bg-red-500 text-white"
+                  ? "bg-editorial-accent text-white"
                   : "bg-white/90 hover:bg-black hover:text-white text-black",
               )}
             >

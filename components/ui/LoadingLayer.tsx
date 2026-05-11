@@ -32,7 +32,7 @@ export const LoadingLayer: React.FC<LoadingLayerProps> = ({
         </div>
 
         <div className="mt-8 flex flex-col items-center gap-2">
-          <span className="font-serif text-xl font-bold tracking-[0.2em] uppercase text-black">
+          <span className="font-cormorant text-xl font-bold tracking-[0.2em] uppercase text-black">
             DaoDuckWear
           </span>
           <div className="flex items-center gap-3">

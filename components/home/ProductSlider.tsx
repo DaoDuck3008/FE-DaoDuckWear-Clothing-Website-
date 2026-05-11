@@ -108,7 +108,7 @@ export const ProductSliderSection = ({
     <section className="max-w-screen mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-16 mb-6 lg:mb-12 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 lg:mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tighter uppercase">
+        <h2 className="font-cormorant text-xl sm:text-2xl font-bold tracking-tighter uppercase">
           {title}
         </h2>
         <div className="flex gap-2">

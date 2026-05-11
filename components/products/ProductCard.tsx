@@ -80,7 +80,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             onClick={handleToggleFavorite}
             className={cn(
               "w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-black hover:text-white transition-all",
-              isFavorite(product.id) && "bg-red-500 text-white"
+              isFavorite(product.id) && "bg-editorial-accent text-white"
             )}
           >
             <Heart className={cn("w-4 h-4", isFavorite(product.id) && "fill-current")} />

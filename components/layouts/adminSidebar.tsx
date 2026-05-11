@@ -106,7 +106,7 @@ export default function AdminSidebar({
       className={cn(
         // Mobile: fixed overlay; Desktop: static sidebar
         "fixed inset-y-0 left-0 z-50 flex flex-col h-screen",
-        "bg-slate-900 border-r border-slate-800",
+        "bg-stone-900 border-r border-stone-800",
         "transition-transform duration-300 ease-in-out",
         // Mobile: controlled by mobileOpen
         mobileOpen ? "translate-x-0" : "-translate-x-full",
@@ -116,11 +116,11 @@ export default function AdminSidebar({
       )}
     >
       {/* Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 flex-shrink-0">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-stone-800 flex-shrink-0">
         {!isCollapsed && (
           <Link
             href="/admin"
-            className="font-serif text-lg font-bold tracking-tighter text-white truncate"
+            className="font-cormorant text-lg font-bold tracking-tighter text-white truncate"
             onClick={onMobileClose}
           >
             DAODUCK WEAR
@@ -130,14 +130,14 @@ export default function AdminSidebar({
           {/* Mobile close */}
           <button
             onClick={onMobileClose}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="md:hidden p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
           {/* Desktop collapse */}
           <button
             onClick={toggleSidebar}
-            className="hidden md:flex p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
+            className="hidden md:flex p-1.5 rounded-lg text-stone-500 hover:text-white hover:bg-white/10 transition-colors"
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
@@ -173,7 +173,7 @@ export default function AdminSidebar({
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                   isActive && !hasSubItems
                     ? "bg-white/15 text-white"
-                    : "text-slate-400 hover:text-white hover:bg-white/5",
+                    : "text-stone-400 hover:text-white hover:bg-white/5",
                   isCollapsed && "justify-center",
                 )}
               >
@@ -201,7 +201,7 @@ export default function AdminSidebar({
 
                 {/* Tooltip khi thu gọn */}
                 {isCollapsed && (
-                  <div className="fixed left-[4.5rem] hidden group-hover:flex items-center bg-slate-800 border border-slate-700 text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-md">
+                  <div className="fixed left-[4.5rem] hidden group-hover:flex items-center bg-stone-800 border border-stone-700 text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-md">
                     {item.title}
                   </div>
                 )}
@@ -209,7 +209,7 @@ export default function AdminSidebar({
 
               {/* Sub items */}
               {hasSubItems && isOpen && !isCollapsed && (
-                <div className="ml-4 pl-3 border-l border-slate-700/60 flex flex-col space-y-0.5 py-1 mt-0.5">
+                <div className="ml-4 pl-3 border-l border-stone-700/60 flex flex-col space-y-0.5 py-1 mt-0.5">
                   {item.subItems!.map((sub) => {
                     const isSubActive = pathname === sub.href;
                     return (
@@ -221,7 +221,7 @@ export default function AdminSidebar({
                           "py-2 px-2 rounded-md text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors",
                           isSubActive
                             ? "text-white bg-white/10"
-                            : "text-slate-500 hover:text-slate-300 hover:bg-white/5",
+                            : "text-stone-500 hover:text-stone-300 hover:bg-white/5",
                         )}
                       >
                         {sub.title}
@@ -236,12 +236,12 @@ export default function AdminSidebar({
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-slate-800 space-y-2 flex-shrink-0">
+      <div className="p-3 border-t border-stone-800 space-y-2 flex-shrink-0">
         <Link
           href="/"
           onClick={onMobileClose}
           className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group",
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-stone-400 hover:text-white hover:bg-white/5 transition-all group",
             isCollapsed && "justify-center",
           )}
         >
@@ -251,29 +251,29 @@ export default function AdminSidebar({
               <span className="text-[11px] font-bold uppercase tracking-[0.15em] truncate">
                 Về trang chủ
               </span>
-              <span className="text-[9px] uppercase tracking-widest text-slate-600 truncate">
+              <span className="text-[9px] uppercase tracking-widest text-stone-600 truncate">
                 Giao diện khách hàng
               </span>
             </div>
           )}
           {isCollapsed && (
-            <div className="fixed left-[4.5rem] hidden group-hover:flex items-center bg-slate-800 border border-slate-700 text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-md">
+            <div className="fixed left-[4.5rem] hidden group-hover:flex items-center bg-stone-800 border border-stone-700 text-white text-[9px] uppercase tracking-widest font-bold py-1.5 px-3 whitespace-nowrap shadow-xl z-50 rounded-md">
               Về trang chủ
             </div>
           )}
         </Link>
 
         {!isCollapsed ? (
-          <div className="bg-slate-800/60 px-3 py-2 rounded-lg flex items-center justify-between">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          <div className="bg-stone-800/60 px-3 py-2 rounded-lg flex items-center justify-between">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Version
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase">
+            <p className="text-[10px] font-bold text-stone-400 uppercase">
               v1.0.2-beta
             </p>
           </div>
         ) : (
-          <div className="flex justify-center text-[9px] font-bold text-slate-600">
+          <div className="flex justify-center text-[9px] font-bold text-stone-600">
             v1.0
           </div>
         )}

@@ -51,7 +51,7 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
         {/* Hamburger — mobile only */}
         <button
           onClick={onMenuToggle}
-          className="md:hidden p-2 rounded-lg text-slate-500 hover:text-black hover:bg-slate-50 transition-colors flex-shrink-0"
+          className="md:hidden p-2 rounded-lg text-stone-500 hover:text-black hover:bg-stone-50 transition-colors flex-shrink-0"
           aria-label="Mở menu"
         >
           <Menu className="w-5 h-5" />
@@ -60,7 +60,7 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
         {/* Logo — mobile only (desktop logo is in sidebar) */}
         <Link
           href="/admin"
-          className="md:hidden font-serif text-lg font-bold tracking-tighter text-black"
+          className="md:hidden font-cormorant text-lg font-bold tracking-tighter text-black"
         >
           DAODUCK WEAR
         </Link>
@@ -75,11 +75,11 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="hover:opacity-70 transition-opacity flex items-center gap-2 border border-slate-200 hover:border-black rounded-full px-3 py-1.5"
+              className="hover:opacity-70 transition-opacity flex items-center gap-2 border border-stone-200 hover:border-black rounded-full px-3 py-1.5"
             >
               <div className="hidden sm:flex flex-col items-end leading-none">
                 <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-black flex items-center gap-1">
-                  <span className="text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded uppercase tracking-tight">
+                  <span className="text-[9px] font-black bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-tight">
                     {ROLE_MAP[user.role as RoleKey] || user.role}
                   </span>
                   {user.username}
@@ -105,7 +105,7 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-3 w-52 bg-white border border-stone-100 shadow-xl z-50 py-2 rounded-xl">
+              <div className="absolute right-0 mt-3 w-52 bg-white border border-stone-100 shadow-xl z-50 py-2">
                 <div className="px-4 py-2.5 border-b border-stone-100 mb-1">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">
                     {ROLE_MAP[user.role as RoleKey] || "Thành viên"}

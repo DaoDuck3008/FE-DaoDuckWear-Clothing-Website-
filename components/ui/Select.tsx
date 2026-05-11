@@ -44,27 +44,27 @@ export function Select({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between bg-transparent border-b border-slate-200 hover:border-black py-2.5 text-sm transition-colors text-left focus:outline-none"
+        className="w-full flex items-center justify-between bg-transparent border-b border-stone-200 hover:border-black py-2.5 text-sm transition-colors text-left focus:outline-none"
       >
         <span
           className={
             selectedOption
               ? "text-black font-medium text-sm"
-              : "text-slate-400 text-sm"
+              : "text-stone-400 text-sm"
           }
         >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
           className={cn(
-            "w-3.5 h-3.5 text-slate-400 transition-transform flex-shrink-0 ml-2",
+            "w-3.5 h-3.5 text-stone-400 transition-transform flex-shrink-0 ml-2",
             open && "rotate-180"
           )}
         />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-slate-100 shadow-2xl mt-1 max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-stone-100 shadow-2xl mt-1 max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -74,8 +74,8 @@ export function Select({
                 setOpen(false);
               }}
               className={cn(
-                "w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 transition-colors",
-                value === opt.value ? "bg-slate-100 font-bold text-black" : "text-slate-600"
+                "w-full text-left px-4 py-2.5 text-xs hover:bg-stone-50 transition-colors",
+                value === opt.value ? "bg-stone-100 font-bold text-black" : "text-stone-600"
               )}
             >
               {opt.label}

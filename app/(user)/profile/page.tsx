@@ -203,7 +203,7 @@ export default function ProfilePage() {
     <div className="w-full space-y-4">
 
       {/* ╔══ Profile card ═════════════════════════════════════════════════════╗ */}
-      <div className="bg-white rounded-3xl border border-stone-100 shadow-sm">
+      <div className="bg-white border border-stone-100 shadow-sm">
         <div className="p-6 sm:p-8">
 
           {/* Avatar + identity */}
@@ -212,7 +212,7 @@ export default function ProfilePage() {
               className="relative group cursor-pointer shrink-0"
               onClick={() => !isUploadingAvatar && fileInputRef.current?.click()}
             >
-              <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden ring-2 ring-stone-100 group-hover:ring-stone-200 transition-all">
+              <div className="w-[72px] h-[72px] rounded-full overflow-hidden ring-2 ring-stone-100 group-hover:ring-stone-200 transition-all">
                 {isUploadingAvatar ? (
                   <div className="w-full h-full bg-stone-100 flex items-center justify-center animate-pulse">
                     <Loader2 className="w-5 h-5 text-stone-300 animate-spin" />
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                   />
                 )}
               </div>
-              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Camera className="w-4 h-4 text-white" />
               </div>
               <input
@@ -296,7 +296,7 @@ export default function ProfilePage() {
           <div className="mt-5 flex items-center gap-3 flex-wrap">
             <Link
               href="/cart"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:border-stone-900 hover:text-black transition-all text-[11px] font-black uppercase tracking-[0.12em]"
+              className="flex items-center gap-2 px-4 py-2.5 border border-stone-200 text-stone-600 hover:border-stone-900 hover:text-black transition-all text-[11px] font-black uppercase tracking-[0.12em]"
             >
               <ShoppingCart className="w-3.5 h-3.5" />
               Giỏ hàng
@@ -309,7 +309,7 @@ export default function ProfilePage() {
 
             <button
               onClick={openEdit}
-              className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-xl text-[11px] font-black uppercase tracking-[0.12em] hover:scale-[1.03] active:scale-95 transition-all shadow-sm shadow-stone-200"
+              className="flex items-center gap-2 px-4 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-[0.12em] hover:bg-stone-800 active:scale-[0.99] transition-all"
             >
               <Pencil className="w-3.5 h-3.5" />
               Cập nhật thông tin
@@ -319,7 +319,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ╔══ Order stats card ══════════════════════════════════════════════════╗ */}
-      <div className="bg-white rounded-3xl border border-stone-100 shadow-sm">
+      <div className="bg-white border border-stone-100 shadow-sm">
         <div className="px-6 sm:px-8 pt-6 pb-7">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-[10px] font-black text-black uppercase tracking-[0.2em]">
@@ -339,14 +339,14 @@ export default function ProfilePage() {
               <Link
                 key={key}
                 href={`/profile/orders?status=${key}`}
-                className={`group flex flex-col items-center gap-2.5 py-4 px-1 transition-all hover:bg-stone-50 rounded-2xl ${
+                className={`group flex flex-col items-center gap-2.5 py-4 px-1 transition-all hover:bg-stone-50 ${
                   idx < STATUS_CONFIG.length - 1
                     ? "border-r border-stone-100"
                     : ""
                 }`}
               >
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center ${bg} group-hover:scale-105 transition-transform`}
+                  className={`w-12 h-12 flex items-center justify-center ${bg} group-hover:scale-105 transition-transform`}
                 >
                   <Icon className={`w-5 h-5 ${color}`} />
                 </div>
@@ -374,7 +374,7 @@ export default function ProfilePage() {
               className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
               onClick={() => !isSubmitting && setIsEditOpen(false)}
             />
-            <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl shadow-stone-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white w-full max-w-md shadow-2xl shadow-stone-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div
                 className="h-1.5 w-full"
                 style={{ backgroundColor: "#b91446" }}
@@ -438,14 +438,14 @@ export default function ProfilePage() {
                   <button
                     onClick={() => setIsEditOpen(false)}
                     disabled={isSubmitting}
-                    className="flex-1 py-3.5 border border-stone-200 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] text-stone-400 hover:border-stone-300 hover:text-stone-600 transition-all disabled:opacity-50"
+                    className="flex-1 py-3.5 border border-stone-200 text-[11px] font-black uppercase tracking-[0.15em] text-stone-400 hover:border-stone-300 hover:text-stone-600 transition-all disabled:opacity-50"
                   >
                     Hủy
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="flex-1 py-3.5 bg-black text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2"
+                    className="flex-1 py-3.5 bg-black text-white text-[11px] font-black uppercase tracking-[0.15em] hover:bg-stone-800 active:scale-[0.99] transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
