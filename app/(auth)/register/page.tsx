@@ -51,8 +51,13 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(form);
-      toast.success("Đăng ký thành công! Hãy đăng nhập để tiếp tục. 🎉");
+      const res = await register(form);
+      if (res.data.requiresVerification) {
+        toast.info("Vui lòng kiểm tra email để lấy mã xác thực.");
+        router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
+        return;
+      }
+      toast.success("Đăng ký thành công! Hãy đăng nhập để tiếp tục.");
       router.push("/login");
     } catch (err: any) {
       handleApiError(err, "Đăng ký thất bại. Vui lòng thử lại sau.");

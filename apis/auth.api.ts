@@ -59,3 +59,19 @@ export const uploadAvatar = async (file: File) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
+export const verifyEmail = async (email: string, code: string) =>
+  api.post("/auth/verify-email", { email, code });
+
+export const resendVerifyEmail = async (email: string) =>
+  api.post("/auth/resend-verify-email", { email });
+
+export const forgotPassword = async (email: string) =>
+  api.post("/auth/forgot-password", { email });
+
+export const resetPassword = async (data: {
+  email: string;
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
+}) => api.post("/auth/reset-password", data);

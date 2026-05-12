@@ -53,10 +53,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(form);
+      if (res.data.requiresVerification) {
+        toast.info("Mã xác thực đã được gửi đến email của bạn.");
+        router.push(`/verify-email?email=${encodeURIComponent(res.data.email)}`);
+        return;
+      }
       const { accessToken, user } = res.data;
       setAuth(accessToken, user);
-
-      toast.success(`Chào mừng trở lại, ${user.username}! 🎉`);
+      toast.success(`Chào mừng trở lại, ${user.username}!`);
       router.push("/");
     } catch (err: any) {
       handleApiError(
