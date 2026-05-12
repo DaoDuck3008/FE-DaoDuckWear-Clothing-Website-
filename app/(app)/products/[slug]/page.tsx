@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -21,6 +21,7 @@ import InternalServerErrorPage from "@/app/error/500/page";
 import ProductGallery from "@/components/products/ProductGallery";
 import SizeGuide from "@/components/products/SizeGuide";
 import PurchasePolicy from "@/components/products/PurchasePolicy";
+import SimilarProductsSlider from "@/components/products/SimilarProductsSlider";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useFavoriteStore } from "@/stores/favorite.store";
@@ -47,6 +48,10 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<any[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const similarSectionRef = useRef<HTMLDivElement>(null);
+  const hasFetchedSimilar = useRef(false);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -151,6 +156,33 @@ export default function ProductDetailPage() {
       }
     }
   }, [selectedColor, product, selectedSize]);
+
+  // Lazy-fetch similar products khi section vào viewport
+  // Phải chờ loading=false để ref div có trong DOM
+  useEffect(() => {
+    if (!slug || loading) return;
+    const el = similarSectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasFetchedSimilar.current) {
+          hasFetchedSimilar.current = true;
+          setSimilarLoading(true);
+          productApi
+            .getSimilarProducts(slug)
+            .then((data) => setSimilarProducts(data ?? []))
+            .catch(() => {})
+            .finally(() => setSimilarLoading(false));
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [slug, loading]);
 
   const decreaseQty = () => quantity > 1 && setQuantity(quantity - 1);
   const increaseQty = () => setQuantity(quantity + 1);
@@ -617,6 +649,21 @@ export default function ProductDetailPage() {
             {activeTab === "size" && <SizeGuide />}
             {activeTab === "chinhsach" && <PurchasePolicy />}
           </div>
+        </div>
+
+        {/* Similar Products — ref always in DOM for IntersectionObserver */}
+        <div ref={similarSectionRef} className="mt-20 px-4">
+          {(similarLoading || similarProducts.length > 0) && (
+            <>
+              <h2 className="font-cormorant text-xl lg:text-2xl font-bold tracking-tighter uppercase mb-8">
+                Sản phẩm tương tự
+              </h2>
+              <SimilarProductsSlider
+                products={similarProducts}
+                isLoading={similarLoading}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

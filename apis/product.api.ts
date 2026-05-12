@@ -41,4 +41,8 @@ export const productApi = {
     const response = await api.delete(`/products/${id}`);
     return response.data;
   },
+  getSimilarProducts: async (slug: string, limit = 5) => {
+    const response = await api.get(`/products/${slug}/similar?limit=${limit}`);
+    return response.data;
+  },
 };
