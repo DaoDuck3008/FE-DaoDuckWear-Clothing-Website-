@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
 import { useCartStore } from "@/stores/cart.store";
-import { updateProfile, uploadAvatar, getProfile } from "@/apis/auth.api";
+import { updateProfile, uploadAvatar, getProfile, changePassword } from "@/apis/auth.api";
+import { ChangePasswordForm } from "@/types/auth.type";
+import { passwordStrengthRules } from "@/validators/register.validator";
 import { orderApi } from "@/apis/order.api";
 import { handleApiError } from "@/utils/error.util";
 import { toast } from "react-toastify";
@@ -15,6 +17,9 @@ import {
   Loader2,
   X,
   Pencil,
+  Lock,
+  Eye,
+  EyeOff,
   ShoppingCart,
   Clock,
   PackageCheck,
@@ -89,6 +94,7 @@ export default function ProfilePage() {
   const cartCount = useCartStore((state) => state.totalItems());
 
   const [createdAt, setCreatedAt] = useState<string>();
+  const [provider, setProvider] = useState<string>("local");
   const [orderStats, setOrderStats] = useState<Record<string, number>>({});
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -106,10 +112,27 @@ export default function ProfilePage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // change password modal state
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [cpForm, setCpForm] = useState<ChangePasswordForm>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [cpErrors, setCpErrors] = useState<Partial<Record<keyof ChangePasswordForm, string>>>({});
+  const [cpShowCurrent, setCpShowCurrent] = useState(false);
+  const [cpShowNew, setCpShowNew] = useState(false);
+  const [cpShowConfirm, setCpShowConfirm] = useState(false);
+  const [cpNewFocused, setCpNewFocused] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   // ── fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
     getProfile()
-      .then((res) => setCreatedAt(res.data.createdAt))
+      .then((res) => {
+        setCreatedAt(res.data.createdAt);
+        setProvider(res.data.provider || "local");
+      })
       .catch(() => {});
 
     Promise.all(
@@ -171,6 +194,38 @@ export default function ProfilePage() {
       handleApiError(e);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const validateCp = () => {
+    const e: Partial<Record<keyof ChangePasswordForm, string>> = {};
+    if (!cpForm.currentPassword) e.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
+    if (!cpForm.newPassword) e.newPassword = "Vui lòng nhập mật khẩu mới";
+    else if (cpForm.newPassword.length < 6) e.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
+    else if (!/[A-Z]/.test(cpForm.newPassword)) e.newPassword = "Mật khẩu phải chứa ít nhất 1 chữ in hoa";
+    else if (!/\d/.test(cpForm.newPassword)) e.newPassword = "Mật khẩu phải chứa ít nhất 1 chữ số";
+    if (!cpForm.confirmPassword) e.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
+    else if (cpForm.newPassword !== cpForm.confirmPassword) e.confirmPassword = "Mật khẩu xác nhận không khớp";
+    return e;
+  };
+
+  const handleChangePassword = async () => {
+    const errors = validateCp();
+    if (Object.keys(errors).length) {
+      setCpErrors(errors);
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      await changePassword(cpForm);
+      toast.success("Đổi mật khẩu thành công!");
+      setIsChangePasswordOpen(false);
+      setCpForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setCpErrors({});
+    } catch (e) {
+      handleApiError(e);
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -314,6 +369,16 @@ export default function ProfilePage() {
               <Pencil className="w-3.5 h-3.5" />
               Cập nhật thông tin
             </button>
+
+            {provider !== "google" && (
+              <button
+                onClick={() => setIsChangePasswordOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 border border-stone-200 text-stone-600 hover:border-stone-900 hover:text-black transition-all text-[11px] font-black uppercase tracking-[0.12em]"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Đổi mật khẩu
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -365,6 +430,169 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* ╔══ Change password modal ════════════════════════════════════════════╗ */}
+      {isChangePasswordOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+              onClick={() => !isChangingPassword && setIsChangePasswordOpen(false)}
+            />
+            <div className="relative bg-white w-full max-w-md shadow-2xl shadow-stone-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="h-1.5 w-full" style={{ backgroundColor: "#b91446" }} />
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-black text-black uppercase tracking-tight">
+                    Đổi mật khẩu
+                  </h3>
+                  <button
+                    onClick={() => !isChangingPassword && setIsChangePasswordOpen(false)}
+                    className="p-2 text-stone-300 hover:text-stone-900 transition-colors rounded-full hover:bg-stone-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Current password */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-stone-400 uppercase tracking-[0.18em]">
+                    Mật khẩu hiện tại
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={cpShowCurrent ? "text" : "password"}
+                      value={cpForm.currentPassword}
+                      onChange={(e) => {
+                        setCpForm((p) => ({ ...p, currentPassword: e.target.value }));
+                        setCpErrors((p) => ({ ...p, currentPassword: undefined }));
+                      }}
+                      placeholder="••••••••"
+                      className="w-full bg-transparent border-b border-stone-200 focus:border-black py-3 outline-none text-sm transition-colors pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCpShowCurrent((v) => !v)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors"
+                    >
+                      {cpShowCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {cpErrors.currentPassword && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                      {cpErrors.currentPassword}
+                    </p>
+                  )}
+                </div>
+
+                {/* New password */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-stone-400 uppercase tracking-[0.18em]">
+                    Mật khẩu mới
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={cpShowNew ? "text" : "password"}
+                      value={cpForm.newPassword}
+                      onChange={(e) => {
+                        setCpForm((p) => ({ ...p, newPassword: e.target.value }));
+                        setCpErrors((p) => ({ ...p, newPassword: undefined }));
+                      }}
+                      onFocus={() => setCpNewFocused(true)}
+                      onBlur={() => setCpNewFocused(false)}
+                      placeholder="••••••••"
+                      className="w-full bg-transparent border-b border-stone-200 focus:border-black py-3 outline-none text-sm transition-colors pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCpShowNew((v) => !v)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors"
+                    >
+                      {cpShowNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {cpErrors.newPassword && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                      {cpErrors.newPassword}
+                    </p>
+                  )}
+                  {(cpNewFocused || cpForm.newPassword.length > 0) && (
+                    <div className="pt-1 flex flex-wrap gap-x-4 gap-y-2">
+                      {passwordStrengthRules.map((rule) => {
+                        const passed = rule.test(cpForm.newPassword);
+                        return (
+                          <div
+                            key={rule.label}
+                            className={`flex items-center gap-1.5 text-[9px] uppercase tracking-widest ${passed ? "text-black" : "text-stone-300"}`}
+                          >
+                            <div className={`w-1 h-1 rounded-full ${passed ? "bg-black" : "bg-stone-200"}`} />
+                            {rule.label}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm password */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-stone-400 uppercase tracking-[0.18em]">
+                    Xác nhận mật khẩu mới
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={cpShowConfirm ? "text" : "password"}
+                      value={cpForm.confirmPassword}
+                      onChange={(e) => {
+                        setCpForm((p) => ({ ...p, confirmPassword: e.target.value }));
+                        setCpErrors((p) => ({ ...p, confirmPassword: undefined }));
+                      }}
+                      placeholder="••••••••"
+                      className="w-full bg-transparent border-b border-stone-200 focus:border-black py-3 outline-none text-sm transition-colors pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCpShowConfirm((v) => !v)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors"
+                    >
+                      {cpShowConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {cpErrors.confirmPassword && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                      {cpErrors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setIsChangePasswordOpen(false)}
+                    disabled={isChangingPassword}
+                    className="flex-1 py-3.5 border border-stone-200 text-[11px] font-black uppercase tracking-[0.15em] text-stone-400 hover:border-stone-300 hover:text-stone-600 transition-all disabled:opacity-50"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={isChangingPassword}
+                    className="flex-1 py-3.5 bg-black text-white text-[11px] font-black uppercase tracking-[0.15em] hover:bg-stone-800 active:scale-[0.99] transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                  >
+                    {isChangingPassword ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      "Lưu thay đổi"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
 
       {/* ╔══ Edit modal ════════════════════════════════════════════════════════╗ */}
       {isEditOpen && (

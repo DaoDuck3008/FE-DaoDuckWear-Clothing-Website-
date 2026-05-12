@@ -10,3 +10,9 @@ export interface LoginForm {
   password: string;
   rememberMe: boolean;
 }
+
+export interface ChangePasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

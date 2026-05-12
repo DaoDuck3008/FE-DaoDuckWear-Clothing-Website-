@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { RegisterForm, LoginForm } from "@/types/auth.type";
+import { RegisterForm, LoginForm, ChangePasswordForm } from "@/types/auth.type";
 
 export const register = async (data: RegisterForm) => {
   try {
@@ -75,3 +75,6 @@ export const resetPassword = async (data: {
   newPassword: string;
   confirmPassword: string;
 }) => api.post("/auth/reset-password", data);
+
+export const changePassword = async (data: ChangePasswordForm) =>
+  api.patch("/auth/change-password", data);
