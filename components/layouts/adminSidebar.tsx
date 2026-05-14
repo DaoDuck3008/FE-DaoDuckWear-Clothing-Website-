@@ -19,8 +19,19 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useAuthStore } from "@/stores/auth.store";
 
-const menuItems = [
+type AdminRole = "ADMIN" | "MANAGER" | "STAFF";
+
+interface MenuItem {
+  title: string;
+  icon: typeof LayoutDashboard;
+  href: string;
+  subItems?: { title: string; href: string }[];
+  allowedRoles?: AdminRole[];
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
@@ -68,6 +79,7 @@ const menuItems = [
     title: "Quản lý nhân viên",
     icon: Users,
     href: "/admin/staff",
+    allowedRoles: ["ADMIN", "MANAGER"],
   },
   {
     title: "Cài đặt",
@@ -86,8 +98,13 @@ export default function AdminSidebar({
   onMobileClose,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const role = useAuthStore((s) => s.user?.role) as AdminRole | undefined;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openMenus, setOpenMenus] = useState<string[]>(["Quản lý sản phẩm"]);
+
+  const visibleItems = menuItems.filter(
+    (item) => !item.allowedRoles || (role && item.allowedRoles.includes(role)),
+  );
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -126,7 +143,9 @@ export default function AdminSidebar({
             DAODUCK WEAR
           </Link>
         )}
-        <div className={cn("flex items-center gap-1", isCollapsed && "mx-auto")}>
+        <div
+          className={cn("flex items-center gap-1", isCollapsed && "mx-auto")}
+        >
           {/* Mobile close */}
           <button
             onClick={onMobileClose}
@@ -150,7 +169,7 @@ export default function AdminSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto no-scrollbar">
-        {menuItems.map((item) => {
+        {visibleItems.map((item) => {
           const hasSubItems = item.subItems && item.subItems.length > 0;
           const isOpen = openMenus.includes(item.title);
           const isActive =
@@ -180,7 +199,9 @@ export default function AdminSidebar({
                 <item.icon
                   className={cn(
                     "w-5 h-5 flex-shrink-0",
-                    isActive && !hasSubItems ? "text-white" : "group-hover:scale-110 transition-transform",
+                    isActive && !hasSubItems
+                      ? "text-white"
+                      : "group-hover:scale-110 transition-transform",
                   )}
                 />
                 {!isCollapsed && (
