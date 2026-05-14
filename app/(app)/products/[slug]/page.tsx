@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useInView } from "react-intersection-observer";
 import {
   ChevronRight,
   Minus,
@@ -50,8 +51,10 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [similarProducts, setSimilarProducts] = useState<any[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
-  const similarSectionRef = useRef<HTMLDivElement>(null);
-  const hasFetchedSimilar = useRef(false);
+  const { ref: similarSectionRef, inView: similarInView } = useInView({
+    threshold: 0.1,
+    triggerOnce: true,
+  });
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -157,32 +160,16 @@ export default function ProductDetailPage() {
     }
   }, [selectedColor, product, selectedSize]);
 
-  // Lazy-fetch similar products khi section vào viewport
-  // Phải chờ loading=false để ref div có trong DOM
+  // Lazy-fetch similar products khi section vào viewport (triggerOnce: chỉ fetch 1 lần)
   useEffect(() => {
-    if (!slug || loading) return;
-    const el = similarSectionRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasFetchedSimilar.current) {
-          hasFetchedSimilar.current = true;
-          setSimilarLoading(true);
-          productApi
-            .getSimilarProducts(slug)
-            .then((data) => setSimilarProducts(data ?? []))
-            .catch(() => {})
-            .finally(() => setSimilarLoading(false));
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [slug, loading]);
+    if (!similarInView || !slug) return;
+    setSimilarLoading(true);
+    productApi
+      .getSimilarProducts(slug)
+      .then((data) => setSimilarProducts(data ?? []))
+      .catch(() => {})
+      .finally(() => setSimilarLoading(false));
+  }, [similarInView, slug]);
 
   const decreaseQty = () => quantity > 1 && setQuantity(quantity - 1);
   const increaseQty = () => setQuantity(quantity + 1);
