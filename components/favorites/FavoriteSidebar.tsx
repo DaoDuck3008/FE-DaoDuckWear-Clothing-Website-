@@ -7,6 +7,7 @@ import ModalPortal from "../ui/modalPortal";
 import { useFavoriteStore } from "@/stores/favorite.store";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { useConfirm } from "@/hooks/useConfirm";
 
 interface FavoriteSidebarProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function FavoriteSidebar({
   const [shouldRender, setShouldRender] = useState(false);
   const [isAnimate, setIsAnimate] = useState(false);
   const { items, removeItem, totalItems, clearFavorites } = useFavoriteStore();
+  const { confirm, confirmDialog } = useConfirm();
 
   // Xử lý hiệu ứng slide vào và ra
   useEffect(() => {
@@ -39,10 +41,14 @@ export default function FavoriteSidebar({
   }, [isOpen]);
 
   const handleClearAll = async () => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa tất cả sản phẩm yêu thích?")) {
-      await clearFavorites();
-      toast.info("Đã xóa tất cả sản phẩm yêu thích");
-    }
+    const ok = await confirm({
+      title: "Xóa tất cả yêu thích",
+      description: "Bạn có chắc chắn muốn xóa toàn bộ sản phẩm yêu thích?",
+      confirmText: "Xóa tất cả",
+    });
+    if (!ok) return;
+    await clearFavorites();
+    toast.info("Đã xóa tất cả sản phẩm yêu thích");
   };
 
   if (!shouldRender) return null;
@@ -167,6 +173,7 @@ export default function FavoriteSidebar({
           )}
         </div>
       </div>
+      {confirmDialog}
     </ModalPortal>
   );
 }

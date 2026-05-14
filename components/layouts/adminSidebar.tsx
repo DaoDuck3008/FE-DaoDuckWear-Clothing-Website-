@@ -74,6 +74,7 @@ const menuItems: MenuItem[] = [
     title: "Quản lý khách hàng",
     icon: Users,
     href: "/admin/customers",
+    allowedRoles: ["ADMIN"],
   },
   {
     title: "Quản lý nhân viên",

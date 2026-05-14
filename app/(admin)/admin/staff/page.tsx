@@ -23,6 +23,7 @@ import { handleApiError } from "@/utils/error.util";
 import { Select } from "@/components/ui/Select";
 import { ShopSelect, type Shop } from "@/components/ui/ShopSelect";
 import { cn } from "@/utils/cn";
+import { useConfirm } from "@/hooks/useConfirm";
 import type { Staff, StaffEmploymentStatus, StaffRole } from "@/types/staff";
 import { StaffFormModal } from "./StaffFormModal";
 import { StaffDetailModal } from "./StaffDetailModal";
@@ -56,6 +57,7 @@ const formatDate = (iso: string | null) => {
 
 export default function AdminStaffPage() {
   const router = useRouter();
+  const { confirm, confirmDialog } = useConfirm();
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
 
@@ -171,13 +173,12 @@ export default function AdminStaffPage() {
       toast.error("Bạn không thể tự xóa tài khoản của mình");
       return;
     }
-    if (
-      !window.confirm(
-        `Bạn có chắc muốn xóa nhân viên "${s.fullName || s.username}"?`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Xóa nhân viên",
+      description: `Bạn có chắc muốn xóa nhân viên "${s.fullName || s.username}"?`,
+      confirmText: "Xóa",
+    });
+    if (!ok) return;
     try {
       await userApi.deleteStaff(s.id);
       toast.success("Đã xóa nhân viên");
@@ -192,7 +193,12 @@ export default function AdminStaffPage() {
   };
 
   const handleResetPassword = async (s: Staff) => {
-    if (!window.confirm(`Gửi mật khẩu mới tới ${s.email}?`)) return;
+    const ok = await confirm({
+      title: "Đặt lại mật khẩu",
+      description: `Hệ thống sẽ sinh mật khẩu mới và gửi tới ${s.email}. Tiếp tục?`,
+      confirmText: "Gửi mật khẩu mới",
+    });
+    if (!ok) return;
     setResettingId(s.id);
     try {
       await userApi.resetStaffPassword(s.id);
@@ -564,6 +570,8 @@ export default function AdminStaffPage() {
             : undefined
         }
       />
+
+      {confirmDialog}
     </div>
   );
 }

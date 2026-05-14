@@ -23,10 +23,12 @@ import { toast } from "react-toastify";
 import { formatPrice } from "@/utils/format.util";
 import { handleApiError } from "@/utils/error.util";
 import { cn } from "@/utils/cn";
+import { useConfirm } from "@/hooks/useConfirm";
 import { StatusModal } from "@/components/ui/StatusModal";
 import { useAuthStore } from "@/stores/auth.store";
 
 export default function AdminProductsPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,12 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    const ok = await confirm({
+      title: "Xóa sản phẩm",
+      description: "Bạn có chắc chắn muốn xóa sản phẩm này? Thao tác không thể hoàn tác.",
+      confirmText: "Xóa",
+    });
+    if (!ok) return;
     try {
       await productApi.deleteProduct(id);
       toast.success("Đã xóa sản phẩm");
@@ -486,6 +493,8 @@ export default function AdminProductsPage() {
         confirmText={statusModal.product?.status === "active" ? "Ngừng bán" : "Kích hoạt"}
         cancelText="Để tôi xem lại"
       />
+
+      {confirmDialog}
     </div>
   );
 }

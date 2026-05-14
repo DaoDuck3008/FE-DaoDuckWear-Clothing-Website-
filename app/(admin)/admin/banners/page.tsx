@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { bannerApi } from "@/apis/banner.api";
 import { Select } from "@/components/ui/Select";
 import { handleApiError } from "@/utils/error.util";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const PAGE_OPTIONS = [
   { value: "home", label: "Trang chủ" },
@@ -73,6 +74,7 @@ function getBannerId(banner: any): string {
 }
 
 export default function AdminBannersPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [positionFilter, setPositionFilter] = useState("");
@@ -209,7 +211,12 @@ export default function AdminBannersPage() {
   };
 
   const handleDelete = async (banner: any) => {
-    if (!window.confirm("Bạn có chắc muốn xóa banner này?")) return;
+    const ok = await confirm({
+      title: "Xóa banner",
+      description: "Bạn có chắc muốn xóa banner này? Thao tác không thể hoàn tác.",
+      confirmText: "Xóa",
+    });
+    if (!ok) return;
     try {
       await bannerApi.deleteBanner(getBannerId(banner));
       toast.success("Đã xóa banner");
@@ -706,6 +713,8 @@ export default function AdminBannersPage() {
           </div>
         </div>
       )}
+
+      {confirmDialog}
     </div>
   );
 }

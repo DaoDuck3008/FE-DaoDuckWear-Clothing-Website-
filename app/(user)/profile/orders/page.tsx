@@ -24,6 +24,7 @@ import { cn } from "@/utils/cn";
 import { toast } from "react-toastify";
 import { PAYMENT_STATUS_OPTIONS } from "@/constants/order";
 import { Select } from "@/components/ui/Select";
+import { useConfirm } from "@/hooks/useConfirm";
 
 // ─── Status tab config ─────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ const STATUS_TABS = [
 
 export default function OrdersProfilePage() {
   const searchParams = useSearchParams();
+  const { confirm, confirmDialog } = useConfirm();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,13 @@ export default function OrdersProfilePage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này?")) return;
+    const ok = await confirm({
+      title: "Hủy đơn hàng",
+      description:
+        "Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác.",
+      confirmText: "Hủy đơn",
+    });
+    if (!ok) return;
     setCancellingId(orderId);
     try {
       await orderApi.cancelMyOrder(orderId);
@@ -354,6 +362,8 @@ export default function OrdersProfilePage() {
           </div>
         </div>
       )}
+
+      {confirmDialog}
     </div>
   );
 }

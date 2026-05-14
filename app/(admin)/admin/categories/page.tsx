@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { categoryApi } from "@/apis/category.api";
 import { CategoryAdmin } from "@/types/product";
 import { handleApiError } from "@/utils/error.util";
+import { useConfirm } from "@/hooks/useConfirm";
 
 interface CategoryForm {
   name: string;
@@ -42,6 +43,7 @@ function sortGrouped(list: CategoryAdmin[]): CategoryAdmin[] {
 }
 
 export default function AdminCategoriesPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -141,7 +143,12 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async (category: CategoryAdmin) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa danh mục "${category.name}"?`)) return;
+    const ok = await confirm({
+      title: "Xóa danh mục",
+      description: `Bạn có chắc muốn xóa danh mục "${category.name}"?`,
+      confirmText: "Xóa",
+    });
+    if (!ok) return;
     try {
       await categoryApi.deleteCategory(category.id);
       toast.success("Đã xóa danh mục");
@@ -410,6 +417,8 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
       )}
+
+      {confirmDialog}
     </div>
   );
 }

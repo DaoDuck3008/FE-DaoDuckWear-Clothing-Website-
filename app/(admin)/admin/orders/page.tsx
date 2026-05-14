@@ -26,8 +26,10 @@ import {
   PAYMENT_STATUS_OPTIONS,
 } from "@/constants/order";
 import { useAuthStore } from "@/stores/auth.store";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function OrdersManagementPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,12 +133,12 @@ export default function OrdersManagementPage() {
   };
 
   const updateStatus = async (orderId: string, newStatus: string) => {
-    if (
-      !confirm(
-        `Bạn có chắc muốn chuyển trạng thái đơn hàng sang ${STATUS_LABELS[newStatus]}?`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: "Cập nhật trạng thái đơn",
+      description: `Chuyển trạng thái đơn hàng sang "${STATUS_LABELS[newStatus]}"?`,
+      confirmText: "Cập nhật",
+    });
+    if (!ok) return;
 
     setUpdating(orderId);
     try {
@@ -151,12 +153,13 @@ export default function OrdersManagementPage() {
   };
 
   const cancelOrder = async (orderId: string) => {
-    if (
-      !confirm(
+    const ok = await confirm({
+      title: "Hủy đơn hàng",
+      description:
         "Bạn có chắc muốn hủy đơn hàng này? Thao tác này sẽ hoàn lại số lượng tồn kho.",
-      )
-    )
-      return;
+      confirmText: "Hủy đơn",
+    });
+    if (!ok) return;
 
     setUpdating(orderId);
     try {
@@ -509,6 +512,8 @@ export default function OrdersManagementPage() {
           </div>
         </div>
       )}
+
+      {confirmDialog}
     </div>
   );
 }
