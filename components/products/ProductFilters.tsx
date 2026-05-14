@@ -150,35 +150,38 @@ export default function ProductFilters({
               Màu sắc
             </h3>
             <div className="grid grid-cols-5 gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color.id}
-                  onClick={() => handleColorToggle(color.id)}
-                  className={cn(
-                    "group relative flex flex-col items-center gap-2 transition-all",
-                    isColorSelected(color.id) ? "scale-110" : "hover:scale-110",
-                  )}
-                >
-                  <div
-                    className="w-8 h-8 rounded-md border border-stone-200 flex items-center justify-center transition-all"
-                    style={{ backgroundColor: color.hexCode }}
-                  >
-                    {isColorSelected(color.id) && (
-                      <Check
-                        className={cn(
-                          "w-4 h-4",
-                          color.hexCode.toUpperCase() === "#FFFFFF"
-                            ? "text-black"
-                            : "text-white",
-                        )}
-                      />
+              {colors &&
+                colors.map((color) => (
+                  <button
+                    key={color._id}
+                    onClick={() => handleColorToggle(color._id)}
+                    className={cn(
+                      "group relative flex flex-col items-center gap-2 transition-all",
+                      isColorSelected(color._id)
+                        ? "scale-110"
+                        : "hover:scale-110",
                     )}
-                  </div>
-                  <span className="text-[8px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
-                    {color.name}
-                  </span>
-                </button>
-              ))}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-md border border-stone-200 flex items-center justify-center transition-all"
+                      style={{ backgroundColor: color.hexCode }}
+                    >
+                      {isColorSelected(color.id) && (
+                        <Check
+                          className={cn(
+                            "w-4 h-4",
+                            color.hexCode.toUpperCase() === "#FFFFFF"
+                              ? "text-black"
+                              : "text-white",
+                          )}
+                        />
+                      )}
+                    </div>
+                    <span className="text-[8px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                      {color.name}
+                    </span>
+                  </button>
+                ))}
             </div>
           </div>
 
