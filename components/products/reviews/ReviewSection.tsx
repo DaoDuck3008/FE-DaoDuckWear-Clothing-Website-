@@ -10,7 +10,6 @@ import { useAuthStore } from "@/stores/auth.store";
 import { handleApiError } from "@/utils/error.util";
 import RatingStatsComponent from "./RatingStats";
 import ReviewCard from "./ReviewCard";
-import ReviewForm from "./ReviewForm";
 import ReviewSectionSkeleton from "./ReviewSectionSkeleton";
 
 interface ReviewSectionProps {
@@ -20,7 +19,10 @@ interface ReviewSectionProps {
 
 const LIMIT = 5;
 
-export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectionProps) {
+export default function ReviewSection({
+  productId,
+  onStatsLoaded,
+}: ReviewSectionProps) {
   const user = useAuthStore((state) => state.user);
 
   const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true });
@@ -55,9 +57,7 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
       setPage(1);
 
       if (user) {
-        const mine = reviewsData.reviews.find(
-          (r) => r.userId?.id === user.id,
-        );
+        const mine = reviewsData.reviews.find((r) => r.userId?.id === user.id);
         setUserReview(mine ?? null);
       }
     } catch {
@@ -85,33 +85,9 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
     }
   };
 
-  const handleReviewCreated = (newReview: Review) => {
-    setReviews((prev) => [newReview, ...prev]);
-    setUserReview(newReview);
-    // Cập nhật stats
-    if (stats) {
-      const newTotal = stats.totalCount + 1;
-      const newAvg =
-        Math.round(
-          ((stats.averageRating * stats.totalCount + newReview.rating) / newTotal) * 10,
-        ) / 10;
-      const newStats = {
-        ...stats,
-        totalCount: newTotal,
-        averageRating: newAvg,
-        distribution: {
-          ...stats.distribution,
-          [newReview.rating]: (stats.distribution[newReview.rating] ?? 0) + 1,
-        },
-      };
-      setStats(newStats);
-      onStatsLoaded?.(newStats);
-    }
-  };
-
   const handleReviewUpdated = (updated: Review) => {
     setReviews((prev) =>
-      prev.map((r) => (r.id === updated.id ? updated : r)),
+      prev.map((r) => (r._id === updated._id ? updated : r)),
     );
     setUserReview(updated);
   };
@@ -119,19 +95,21 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
   const handleReviewDeleted = async (id: string) => {
     try {
       await reviewApi.deleteReview(id);
-      setReviews((prev) => prev.filter((r) => r.id !== id));
+      setReviews((prev) => prev.filter((r) => r._id !== id));
       setUserReview(null);
       toast.success("Đã xóa đánh giá");
       // Cập nhật stats
       if (stats) {
-        const deleted = reviews.find((r) => r.id === id);
+        const deleted = reviews.find((r) => r._id === id);
         if (deleted) {
           const newTotal = Math.max(0, stats.totalCount - 1);
           const newAvg =
             newTotal === 0
               ? 0
               : Math.round(
-                  ((stats.averageRating * stats.totalCount - deleted.rating) / newTotal) * 10,
+                  ((stats.averageRating * stats.totalCount - deleted.rating) /
+                    newTotal) *
+                    10,
                 ) / 10;
           const newStats = {
             ...stats,
@@ -139,7 +117,10 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
             averageRating: newAvg,
             distribution: {
               ...stats.distribution,
-              [deleted.rating]: Math.max(0, (stats.distribution[deleted.rating] ?? 1) - 1),
+              [deleted.rating]: Math.max(
+                0,
+                (stats.distribution[deleted.rating] ?? 1) - 1,
+              ),
             },
           };
           setStats(newStats);
@@ -150,8 +131,6 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
       handleApiError(err, "Không thể xóa đánh giá");
     }
   };
-
-  const canWriteReview = user && !userReview;
 
   return (
     <div ref={ref} className="mt-20 max-w-4xl mx-auto px-4">
@@ -166,28 +145,20 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
           {/* Stats */}
           {stats && <RatingStatsComponent stats={stats} />}
 
-          {/* Write review */}
+          {/* Write review prompt */}
           <div className="mt-6">
-            {!user ? (
+            {!userReview && (
               <p className="text-[11px] text-stone-400 py-4">
+                Đã mua sản phẩm?{" "}
                 <Link
-                  href="/login"
+                  href="/profile/orders"
                   className="font-bold text-black underline underline-offset-2 hover:text-editorial-accent transition-colors"
                 >
-                  Đăng nhập
+                  Vào đơn hàng
                 </Link>{" "}
-                để viết đánh giá sản phẩm.
+                để viết đánh giá.
               </p>
-            ) : userReview ? (
-              <p className="text-[11px] text-stone-400 py-4 uppercase tracking-widest font-bold">
-                Bạn đã đánh giá sản phẩm này.
-              </p>
-            ) : canWriteReview ? (
-              <ReviewForm
-                productId={productId}
-                onSuccess={handleReviewCreated}
-              />
-            ) : null}
+            )}
           </div>
 
           {/* Review list */}
@@ -199,7 +170,7 @@ export default function ReviewSection({ productId, onStatsLoaded }: ReviewSectio
             <div className="mt-2">
               {reviews.map((review) => (
                 <ReviewCard
-                  key={review.id}
+                  key={review._id}
                   review={review}
                   currentUserId={user?.id}
                   productId={productId}

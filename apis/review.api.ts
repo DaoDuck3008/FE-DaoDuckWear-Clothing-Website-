@@ -15,6 +15,13 @@ export const reviewApi = {
     return response.data;
   },
 
+  getMyReview: async (productId: string) => {
+    const response = await api.get("/reviews/my-review", {
+      params: { productId },
+    });
+    return response.data;
+  },
+
   createReview: async (dto: {
     productId: string;
     rating: number;

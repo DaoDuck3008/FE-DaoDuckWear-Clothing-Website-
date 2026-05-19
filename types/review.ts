@@ -5,7 +5,7 @@ export interface ReviewUser {
 }
 
 export interface Review {
-  id: string;
+  _id: string;
   userId: ReviewUser;
   productId: string;
   rating: number;

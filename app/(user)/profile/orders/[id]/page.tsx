@@ -17,7 +17,9 @@ import {
   ShoppingBag,
   PackageCheck,
   PackageX,
+  Star,
 } from "lucide-react";
+import Link from "next/link";
 import { Fragment } from "react";
 import { formatPrice } from "@/utils/format.util";
 import { cn } from "@/utils/cn";
@@ -291,6 +293,19 @@ export default function OrderDetailPage() {
                   {new Date(order.createdAt).toLocaleString("vi-VN")}
                 </span>
               </p>
+
+              {/* Review CTA — chỉ hiện khi COMPLETED */}
+              {order.status === "COMPLETED" && (
+                <div className="mt-6 pt-6 border-t border-stone-100">
+                  <Link
+                    href={`/profile/orders/${id}/review`}
+                    className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all"
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                    Đánh giá sản phẩm
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
