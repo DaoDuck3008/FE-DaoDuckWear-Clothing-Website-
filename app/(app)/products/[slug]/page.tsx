@@ -23,6 +23,8 @@ import ProductGallery from "@/components/products/ProductGallery";
 import SizeGuide from "@/components/products/SizeGuide";
 import PurchasePolicy from "@/components/products/PurchasePolicy";
 import SimilarProductsSlider from "@/components/products/SimilarProductsSlider";
+import ReviewSection from "@/components/products/reviews/ReviewSection";
+import { RatingStats } from "@/types/review";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useFavoriteStore } from "@/stores/favorite.store";
@@ -49,6 +51,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratingStats, setRatingStats] = useState<RatingStats | null>(null);
   const [similarProducts, setSimilarProducts] = useState<any[]>([]);
   const [similarLoading, setSimilarLoading] = useState(false);
   const { ref: similarSectionRef, inView: similarInView } = useInView({
@@ -361,14 +364,20 @@ export default function ProductDetailPage() {
                   <Star
                     key={i}
                     className={cn(
-                      "w-2.5 h-2.5 fill-current",
-                      i >= 5 && "text-stone-200 fill-none",
+                      "w-2.5 h-2.5",
+                      ratingStats
+                        ? i < Math.round(ratingStats.averageRating)
+                          ? "fill-current text-editorial-accent"
+                          : "fill-none text-stone-200"
+                        : "fill-stone-100 text-stone-100",
                     )}
                   />
                 ))}
               </div>
               <span className="text-[9px] text-stone-400 tracking-widest uppercase font-bold">
-                6 Đánh giá | 56 Đã bán
+                {ratingStats
+                  ? `${ratingStats.averageRating > 0 ? ratingStats.averageRating.toFixed(1) + " · " : ""}${ratingStats.totalCount} Đánh giá`
+                  : "—"}
               </span>
             </div>
 
@@ -637,6 +646,12 @@ export default function ProductDetailPage() {
             {activeTab === "chinhsach" && <PurchasePolicy />}
           </div>
         </div>
+
+        {/* Reviews — lazy-loaded khi scroll đến, nằm trên Similar Products */}
+        <ReviewSection
+          productId={product.id}
+          onStatsLoaded={setRatingStats}
+        />
 
         {/* Similar Products — ref always in DOM for IntersectionObserver */}
         <div ref={similarSectionRef} className="mt-20 px-4">
