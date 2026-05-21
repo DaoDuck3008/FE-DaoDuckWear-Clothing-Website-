@@ -16,12 +16,16 @@ export const handleApiError = (error: unknown, customMessage?: string) => {
   const apiError = axiosError.response?.data;
 
   // 2. Xác định message hiển thị:
-  // Thử lấy message từ backend -> Nếu không có thì lấy customMessage -> Cuối cùng mới lấy message mặc định của Axios
+  // 5xx luôn dùng message generic — không để lộ chi tiết hệ thống ra ngoài dù backend có gửi gì.
+  // 4xx lấy message từ backend (nghiệp vụ) -> customMessage -> fallback Axios.
+  const status = axiosError.response?.status ?? 0;
   const message =
-    apiError?.message ||
-    customMessage ||
-    axiosError.message ||
-    "Đã có lỗi xảy ra, vui lòng thử lại sau!";
+    status >= 500
+      ? (customMessage ?? "Hệ thống gặp sự cố, vui lòng thử lại sau!")
+      : apiError?.message ||
+        customMessage ||
+        axiosError.message ||
+        "Đã có lỗi xảy ra, vui lòng thử lại sau!";
 
   // 3. Xử lý hiển thị thông báo lỗi
   if (apiError?.errors && Array.isArray(apiError.errors)) {
@@ -43,8 +47,6 @@ export const handleApiError = (error: unknown, customMessage?: string) => {
     process.env.NODE_ENV === "development" ||
     process.env.NEXT_PUBLIC_NODE_ENV === "development"
   ) {
-    const status = axiosError.response?.status || 500;
-
     if (status >= 400 && status < 500) {
       // không log các lỗi nghiệp vụ (Client Errors: 400, 401, 403, 404...)
       console.warn(
@@ -76,6 +78,6 @@ export const handleApiError = (error: unknown, customMessage?: string) => {
     message,
     errorCode: apiError?.errorCode,
     errors: apiError?.errors,
-    statusCode: axiosError.response?.status || 500,
+    statusCode: status || 500,
   };
 };
