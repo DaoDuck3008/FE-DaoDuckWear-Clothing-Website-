@@ -45,6 +45,7 @@ export const ProductSliderSection = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const isAnimatingRef = useRef(false);
 
   const measure = useCallback(() => {
     if (!containerRef.current) return;
@@ -76,17 +77,36 @@ export const ProductSliderSection = ({
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== "transform") return;
-    if (currentIndex >= VISIBLE_LG + n) {
-      setAnimated(false);
-      setCurrentIndex((i) => i - n);
-    } else if (currentIndex < VISIBLE_LG) {
-      setAnimated(false);
-      setCurrentIndex((i) => i + n);
-    }
+    isAnimatingRef.current = false;
   };
 
-  const next = useCallback(() => setCurrentIndex((i) => i + 1), []);
-  const prev = useCallback(() => setCurrentIndex((i) => i - 1), []);
+  // Safety net: whenever currentIndex drifts out of the safe range
+  // (e.g. ticks fired while tab was hidden and transitionend never ran),
+  // snap it back to the equivalent real index without animation.
+  useEffect(() => {
+    if (n <= 0) return;
+    if (currentIndex >= VISIBLE_LG + n || currentIndex < VISIBLE_LG) {
+      const wrapped = ((currentIndex - VISIBLE_LG) % n + n) % n + VISIBLE_LG;
+      if (wrapped !== currentIndex) {
+        setAnimated(false);
+        setCurrentIndex(wrapped);
+        isAnimatingRef.current = false;
+      }
+    }
+  }, [currentIndex, n]);
+
+  const next = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+    setAnimated(true);
+    setCurrentIndex((i) => i + 1);
+  }, []);
+  const prev = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+    setAnimated(true);
+    setCurrentIndex((i) => i - 1);
+  }, []);
 
   const startAuto = useCallback(() => {
     clearInterval(intervalRef.current);
@@ -98,6 +118,17 @@ export const ProductSliderSection = ({
   useEffect(() => {
     if (n > 0) startAuto();
     return stopAuto;
+  }, [n, startAuto, stopAuto]);
+
+  // Pause autoplay when tab is hidden so currentIndex can't drift past
+  // the wrap-around boundary while CSS transitions are frozen.
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) stopAuto();
+      else if (n > 0) startAuto();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
   }, [n, startAuto, stopAuto]);
 
   if (!n) return null;
@@ -171,6 +202,8 @@ export const ProductSliderSection = ({
           <button
             key={i}
             onClick={() => {
+              if (isAnimatingRef.current) return;
+              isAnimatingRef.current = true;
               setAnimated(true);
               setCurrentIndex(VISIBLE_LG + i);
               startAuto();
