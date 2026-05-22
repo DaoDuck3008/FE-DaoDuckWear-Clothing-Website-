@@ -162,24 +162,12 @@ export default function InventoryPage() {
             <span className="hidden sm:inline">Làm mới</span>
           </button>
           <Link
-            href={
-              user?.role === "ADMIN" && selectedShopId
-                ? `/admin/inventory/import?shopId=${selectedShopId}`
-                : "/admin/inventory/import"
-            }
-            className={cn(
-              "inline-flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95",
-              user?.role === "ADMIN" && !selectedShopId
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none shadow-none"
-                : "bg-slate-900 text-white hover:bg-black",
-            )}
-            onClick={(e) => {
-              if (user?.role === "ADMIN" && !selectedShopId) e.preventDefault();
-            }}
+            href="/admin/inventory/history"
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-black transition-all text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95"
           >
             <Warehouse className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Nhập kho nhanh</span>
-            <span className="sm:hidden">Nhập kho</span>
+            <span className="hidden sm:inline">Lịch sử nhập kho</span>
+            <span className="sm:hidden">Lịch sử</span>
           </Link>
         </div>
       </div>

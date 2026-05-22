@@ -52,7 +52,7 @@ const menuItems: MenuItem[] = [
     href: "/admin/inventory",
     subItems: [
       { title: "Xem tồn kho", href: "/admin/inventory" },
-      { title: "Nhập kho nhanh", href: "/admin/inventory/import" },
+      { title: "Lịch sử nhập kho", href: "/admin/inventory/history" },
     ],
   },
   {
