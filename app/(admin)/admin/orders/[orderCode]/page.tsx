@@ -208,6 +208,12 @@ export default function OrderDetailPage() {
                 <span>Phí vận chuyển</span>
                 <span>{formatPrice(order.shippingFee)}</span>
               </div>
+              {order.discountAmount > 0 && (
+                <div className="flex justify-between font-medium text-emerald-600">
+                  <span>Mã giảm giá{order.voucherCode ? ` (${order.voucherCode})` : ""}</span>
+                  <span>−{formatPrice(order.discountAmount)}</span>
+                </div>
+              )}
               <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
                 <span className="text-base font-black text-slate-900 uppercase">Tổng cộng</span>
                 <span className="text-2xl font-black text-slate-900">{formatPrice(order.finalTotal)}</span>

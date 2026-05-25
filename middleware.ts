@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://res.cloudinary.com https://lh3.googleusercontent.com",
-    `connect-src 'self' ${apiUrl} https://accounts.google.com`,
+    `connect-src 'self' ${apiUrl} https://accounts.google.com https://provinces.open-api.vn`,
     "font-src 'self'",
     "frame-src https://accounts.google.com",
     "object-src 'none'",

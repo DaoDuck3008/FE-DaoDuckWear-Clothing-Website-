@@ -16,6 +16,7 @@ import {
   Home,
   Warehouse,
   ImagePlay,
+  Ticket,
   X,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -69,6 +70,12 @@ const menuItems: MenuItem[] = [
     title: "Quản lý đơn hàng",
     icon: ClipboardList,
     href: "/admin/orders",
+  },
+  {
+    title: "Quản lý Voucher",
+    icon: Ticket,
+    href: "/admin/vouchers",
+    allowedRoles: ["ADMIN"],
   },
   {
     title: "Quản lý khách hàng",

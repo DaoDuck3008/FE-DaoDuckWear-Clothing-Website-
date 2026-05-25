@@ -10,12 +10,15 @@ import {
   ShoppingBag,
   Loader2,
   CheckCircle2,
+  Tag,
+  X,
 } from "lucide-react";
 import { useCartStore } from "@/stores/cart.store";
 import { useBuyNowStore } from "@/stores/buy-now.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/utils/cn";
 import { orderApi } from "@/apis/order.api";
+import { voucherApi } from "@/apis/voucher.api";
 import { getProfile } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import AddressSelect from "@/components/common/AddressSelect";
@@ -45,6 +48,12 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Voucher
+  const [voucherInput, setVoucherInput] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -103,7 +112,28 @@ export default function CheckoutPage() {
   }
 
   const shippingFee = 30000;
-  const finalTotal = displayTotalPrice + shippingFee;
+  const discountAmount = appliedVoucher?.discountAmount ?? 0;
+  const finalTotal = displayTotalPrice + shippingFee - discountAmount;
+
+  const handleApplyVoucher = async () => {
+    if (!voucherInput.trim()) return;
+    setVoucherLoading(true);
+    setVoucherError(null);
+    try {
+      const res = await voucherApi.validate({ code: voucherInput.trim(), orderTotal: displayTotalPrice });
+      setAppliedVoucher({ code: voucherInput.trim().toUpperCase(), discountAmount: res.data.discountAmount });
+      setVoucherInput("");
+    } catch (err: any) {
+      setVoucherError(err?.response?.data?.message || "Mã giảm giá không hợp lệ");
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherError(null);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -172,6 +202,10 @@ export default function CheckoutPage() {
         };
       } else {
         orderPayload.cartId = useCartStore.getState().cartId;
+      }
+
+      if (appliedVoucher) {
+        orderPayload.voucherCode = appliedVoucher.code;
       }
 
       await orderApi.createOrder(orderPayload);
@@ -394,6 +428,59 @@ export default function CheckoutPage() {
                 </div>
               </section>
 
+              {/* Voucher section */}
+              <section>
+                <h2 className="text-xl font-bold uppercase tracking-tight mb-6 flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-black text-white text-[10px] flex items-center justify-center">
+                    03
+                  </span>
+                  Mã giảm giá
+                </h2>
+                {appliedVoucher ? (
+                  <div className="flex items-center justify-between px-4 py-3 bg-stone-50 border border-stone-200">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-stone-600" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-stone-700">
+                        {appliedVoucher.code}
+                      </span>
+                      <span className="text-xs text-stone-500">
+                        — Giảm {appliedVoucher.discountAmount.toLocaleString("vi-VN")}₫
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRemoveVoucher}
+                      className="p-1 hover:text-red-600 transition-colors text-stone-400"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={voucherInput}
+                        onChange={(e) => { setVoucherInput(e.target.value.toUpperCase()); setVoucherError(null); }}
+                        onKeyDown={(e) => e.key === "Enter" && handleApplyVoucher()}
+                        placeholder="Nhập mã giảm giá..."
+                        className="flex-1 px-4 py-3 bg-stone-50 border border-stone-100 focus:border-black outline-none text-sm transition-all uppercase tracking-widest font-medium"
+                      />
+                      <button
+                        onClick={handleApplyVoucher}
+                        disabled={voucherLoading || !voucherInput.trim()}
+                        className="px-6 py-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest disabled:opacity-50 hover:bg-stone-800 transition-colors flex items-center gap-2"
+                      >
+                        {voucherLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                        Áp dụng
+                      </button>
+                    </div>
+                    {voucherError && (
+                      <p className="text-[11px] text-red-600 font-medium">{voucherError}</p>
+                    )}
+                  </div>
+                )}
+              </section>
+
               <div className="flex items-center justify-between pt-8 border-t border-stone-100">
                 <Link
                   href="/cart"
@@ -437,6 +524,15 @@ export default function CheckoutPage() {
                   {displayTotalPrice.toLocaleString("vi-VN")}₫
                 </span>
               </div>
+              {appliedVoucher && (
+                <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-emerald-600">
+                  <span className="flex items-center gap-1.5">
+                    <Tag className="w-3 h-3" />
+                    Mã {appliedVoucher.code}
+                  </span>
+                  <span>−{appliedVoucher.discountAmount.toLocaleString("vi-VN")}₫</span>
+                </div>
+              )}
               <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-stone-400">
                 <span>Phí vận chuyển</span>
                 <span className="text-black">30.000₫</span>
