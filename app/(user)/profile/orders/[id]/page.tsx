@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { orderApi } from "@/apis/order.api";
+import { toast } from "react-toastify";
 import {
   ArrowLeft,
   Package,
@@ -25,6 +26,7 @@ import { formatPrice } from "@/utils/format.util";
 import { cn } from "@/utils/cn";
 import { STATUS_DISPLAY } from "@/constants/order";
 import { handleApiError } from "@/utils/error.util";
+import { StatusModal } from "@/components/ui/StatusModal";
 
 const STATUS_ICONS = {
   PENDING: Clock,
@@ -52,6 +54,22 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const handleConfirmReceipt = async () => {
+    setIsConfirming(true);
+    try {
+      await orderApi.confirmReceipt(id as string);
+      const res = await orderApi.getOrder(id as string);
+      setOrder(res.data);
+      toast.success("Xác nhận nhận hàng thành công!");
+    } catch (err) {
+      handleApiError(err, "Không thể xác nhận nhận hàng");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -88,6 +106,16 @@ export default function OrderDetailPage() {
 
   return (
     <div className="w-full">
+      <StatusModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        type="warning"
+        title="Xác nhận đã nhận hàng?"
+        message="Bạn xác nhận đã nhận được kiện hàng này. Đơn hàng sẽ được đánh dấu hoàn thành và không thể hoàn tác."
+        confirmText="Đã nhận hàng"
+        cancelText="Chưa nhận"
+        onConfirm={handleConfirmReceipt}
+      />
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -299,6 +327,27 @@ export default function OrderDetailPage() {
                   {new Date(order.createdAt).toLocaleString("vi-VN")}
                 </span>
               </p>
+
+              {/* Confirm Receipt CTA — chỉ hiện khi SHIPPING */}
+              {order.status === "SHIPPING" && (
+                <div className="mt-6 pt-6 border-t border-stone-100">
+                  <button
+                    onClick={() => setShowConfirmModal(true)}
+                    disabled={isConfirming}
+                    className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all disabled:opacity-50"
+                  >
+                    {isConfirming ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <PackageCheck className="w-3.5 h-3.5" />
+                    )}
+                    Đã nhận được hàng
+                  </button>
+                  <p className="mt-2 text-[10px] text-stone-400">
+                    Xác nhận khi bạn đã nhận được kiện hàng
+                  </p>
+                </div>
+              )}
 
               {/* Review CTA — chỉ hiện khi COMPLETED */}
               {order.status === "COMPLETED" && (

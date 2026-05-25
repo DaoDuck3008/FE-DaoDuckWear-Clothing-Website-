@@ -25,4 +25,7 @@ export const orderApi = {
   cancelMyOrder: (id: string) => {
     return api.patch(`/orders/my-orders/${id}/cancel`);
   },
+  confirmReceipt: (id: string) => {
+    return api.patch(`/orders/my-orders/${id}/confirm-receipt`);
+  },
 };
