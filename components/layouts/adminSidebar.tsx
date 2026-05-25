@@ -17,6 +17,7 @@ import {
   Warehouse,
   ImagePlay,
   Ticket,
+  ScrollText,
   X,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -88,6 +89,12 @@ const menuItems: MenuItem[] = [
     icon: Users,
     href: "/admin/staff",
     allowedRoles: ["ADMIN", "MANAGER"],
+  },
+  {
+    title: "Nhật ký hệ thống",
+    icon: ScrollText,
+    href: "/admin/audit-logs",
+    allowedRoles: ["ADMIN"],
   },
   {
     title: "Cài đặt",
